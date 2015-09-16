@@ -1,7 +1,9 @@
 import weka.core.Instances;
+import weka.core.Utils;
 import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils;
 import weka.filters.Filter;
+import weka.filters.supervised.instance.Resample;
 import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.File;
@@ -90,12 +92,35 @@ public class Util {
         }
     }
 
+    public static Instances resampleDataSet(Instances dataSet)
+    {
+        try
+        {
+            Resample resample = new Resample();
+            String filterOptions = "-B 0.0 -S 1 -Z 100.0";
+            resample.setOptions(Utils.splitOptions(filterOptions));
+            resample.setRandomSeed((int)System.currentTimeMillis());
+            resample.setInputFormat(dataSet);
+            Instances newDataSet = Filter.useFilter(dataSet,resample);
+            return newDataSet;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static void main(String [] args)
     {
         System.out.println("Reading file from ARFF");
         Instances dataSet = Util.readARFF("weather.nominal.arff");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
+
+        System.out.println("\nResampling data set");
+        dataSet = Util.resampleDataSet(dataSet);
+        System.out.println(dataSet.toString());
 
         System.out.println("\nReading file from CSV");
         dataSet = Util.readCSV("dataSet.csv");
