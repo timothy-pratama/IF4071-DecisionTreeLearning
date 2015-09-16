@@ -10,12 +10,14 @@ import java.io.IOException;
  */
 public class Util {
 
-    public static Instances readARFF(String path)
+    private static String pathDataSet = "dataSet/";
+
+    public static Instances readARFF(String namaFile)
     {
         try
         {
             Instances dataSet;
-            ConverterUtils.DataSource dataSource = new ConverterUtils.DataSource(path);
+            ConverterUtils.DataSource dataSource = new ConverterUtils.DataSource(pathDataSet + namaFile);
             dataSet = dataSource.getDataSet();
             if(dataSet.classIndex() == -1)
             {
@@ -31,12 +33,12 @@ public class Util {
         }
     }
 
-    public static Instances readCSV(String path)
+    public static Instances readCSV(String namaFile)
     {
         try
         {
             CSVLoader csvLoader = new CSVLoader();
-            csvLoader.setSource(new File(path));
+            csvLoader.setSource(new File(pathDataSet + namaFile));
             Instances dataSet = csvLoader.getDataSet();
             return dataSet;
         }
@@ -51,11 +53,11 @@ public class Util {
     public static void main(String [] args)
     {
         System.out.println("Reading file from ARFF");
-        Instances dataSet = Util.readARFF("data/weather.nominal.arff");
+        Instances dataSet = Util.readARFF("weather.nominal.arff");
         System.out.println(dataSet.toString());
 
-        System.out.println("Reading file from CSV");
-        dataSet = Util.readCSV("data/dataSet.csv");
+        System.out.println("\nReading file from CSV");
+        dataSet = Util.readCSV("dataSet.csv");
         System.out.println(dataSet.toString());
     }
 }
