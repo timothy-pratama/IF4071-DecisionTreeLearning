@@ -1,6 +1,8 @@
 import weka.core.Instances;
 import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +14,11 @@ public class Util {
 
     private static String pathDataSet = "dataSet/";
 
+    /**
+     *
+     * @param namaFile Nama file data set dengan format arff
+     * @return Instances dari data set
+     */
     public static Instances readARFF(String namaFile)
     {
         try
@@ -33,6 +40,10 @@ public class Util {
         }
     }
 
+    /**
+     * @param namaFile Nama file data set dengan format csv
+     * @return Instances dari data set
+     */
     public static Instances readCSV(String namaFile)
     {
         try
@@ -40,10 +51,39 @@ public class Util {
             CSVLoader csvLoader = new CSVLoader();
             csvLoader.setSource(new File(pathDataSet + namaFile));
             Instances dataSet = csvLoader.getDataSet();
+            if(dataSet.classIndex() == -1)
+            {
+                dataSet.setClassIndex(dataSet.numAttributes()-1);
+            }
             return dataSet;
         }
 
         catch (IOException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * @param dataSet Data set yang akan di-filter
+     * @param attributeIndex Atribut yang akan dibuang dari data set (bernilai dari 1 sampai jumlah atribut)
+     * @return Data set dengan atribut ke attributeIndex sudah dibuang
+     */
+    public static Instances removeAttribute(Instances dataSet, int attributeIndex)
+    {
+        try
+        {
+            String options[] = new String[2];
+            options[0] = "-R";
+            options[1] = String.valueOf(attributeIndex);
+            Remove remove = new Remove();
+            remove.setOptions(options);
+            remove.setInputFormat(dataSet);
+            Instances newDataSet = Filter.useFilter(dataSet,remove);
+            return newDataSet;
+        }
+        catch (Exception e)
         {
             e.printStackTrace();
             return null;
@@ -55,9 +95,16 @@ public class Util {
         System.out.println("Reading file from ARFF");
         Instances dataSet = Util.readARFF("weather.nominal.arff");
         System.out.println(dataSet.toString());
+        System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
         System.out.println("\nReading file from CSV");
         dataSet = Util.readCSV("dataSet.csv");
+        System.out.println(dataSet.toString());
+        System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
+
+        System.out.println("\nRemoving class attributes");
+        dataSet = readARFF("weather.nominal.arff");
+        dataSet = Util.removeAttribute(dataSet,dataSet.numAttributes());
         System.out.println(dataSet.toString());
     }
 }
