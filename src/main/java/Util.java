@@ -4,6 +4,7 @@ import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.trees.Id3;
 import weka.classifiers.trees.J48;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.Utils;
 import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils;
@@ -21,6 +22,8 @@ import java.util.Random;
 public class Util {
 
     private static String pathDataSet = "dataSet/";
+    private static String pathSavedModel = "savedModel/";
+
     public static enum ClassifierType
     {
         NaiveBayes,
@@ -238,6 +241,13 @@ public class Util {
         return null;
     }
 
+    /**
+     * Fungsi Ini digunakan untuk melakukan evaluasi berdasarkan percentage split
+     * @param dataSet Data yang digunakan untuk training classifier
+     * @param untrainedClassifier Classifier yang akan diuji
+     * @param percentage Persen data yang akan diguanakan sebagai training set
+     * @return Hasil evaluasi
+     */
     public static Evaluation percentageSplit(Instances dataSet, Classifier untrainedClassifier, int percentage)
     {
         Instances data = new Instances(dataSet);
@@ -253,6 +263,33 @@ public class Util {
             untrainedClassifier.buildClassifier(trainSet);
             Evaluation eval = testClassifier(untrainedClassifier, trainSet, testSet);
             return eval;
+        }
+
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void saveModel(String filename, Classifier classifier)
+    {
+        try
+        {
+            SerializationHelper.write(pathSavedModel + filename, classifier);
+        }
+
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static Classifier loadModel(String filename)
+    {
+        try
+        {
+            return (Classifier) SerializationHelper.read(pathSavedModel + filename);
         }
 
         catch (Exception e)
@@ -338,5 +375,11 @@ public class Util {
         System.out.println("\n========== Percentage Split J48 Classifier 80% ==========");
         eval = Util.percentageSplit(dataSet, new J48(), 80);
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Testing Save Model ==========");
+        classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
+        Util.saveModel("id3_weather_nominal.model", classifier);
+        System.out.println("\n========== Testing Load Model ==========");
+        System.out.println(Util.loadModel("id3_weather_nominal.model").toString());
     }
 }
