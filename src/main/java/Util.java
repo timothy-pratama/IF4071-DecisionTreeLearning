@@ -219,15 +219,39 @@ public class Util {
     /**
      * Fungsi untuk melakukan 10 folds cross-validation
      * @param dataSet Data latih yang akan digunakan untuk pengujian Classifier
-     * @param classifier Model Classifier yang akan diuji
+     * @param untrainedClassifier Model Classifier yang akan diuji
      * @return Evaluasi hasil pengujian Classifier
      */
-    public static Evaluation crossValidationTest(Instances dataSet, Classifier classifier)
+    public static Evaluation crossValidationTest(Instances dataSet, Classifier untrainedClassifier)
     {
         try
         {
             Evaluation eval = new Evaluation(dataSet);
-            eval.crossValidateModel(classifier, dataSet, 10, new Random(1));
+            eval.crossValidateModel(untrainedClassifier, dataSet, 10, new Random(1));
+            return eval;
+        }
+
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Evaluation percentageSplit(Instances dataSet, Classifier untrainedClassifier, int percentage)
+    {
+        Instances data = new Instances(dataSet);
+        data.randomize(new Random(1));
+
+        int trainSize = Math.round(data.numInstances() * percentage / 100);
+        int testSize = data.numInstances() - trainSize;
+        Instances trainSet = new Instances(data, 0, trainSize);
+        Instances testSet = new Instances(data, trainSize, testSize);
+
+        try
+        {
+            untrainedClassifier.buildClassifier(trainSet);
+            Evaluation eval = testClassifier(untrainedClassifier, trainSet, testSet);
             return eval;
         }
 
@@ -301,6 +325,18 @@ public class Util {
 
         System.out.println("\n========== Cross Validation J48 Classifier ==========");
         eval = Util.crossValidationTest(dataSet, new J48());
+        System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Percentage Split Naive Bayes Classifier 80% ==========");
+        eval = Util.percentageSplit(dataSet, new NaiveBayes(), 80);
+        System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Percentage Split ID3 Classifier 80% ==========");
+        eval = Util.percentageSplit(dataSet, new Id3(), 80);
+        System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Percentage Split J48 Classifier 80% ==========");
+        eval = Util.percentageSplit(dataSet, new J48(), 80);
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
     }
 }
