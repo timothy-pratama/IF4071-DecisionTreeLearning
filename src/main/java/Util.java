@@ -13,6 +13,7 @@ import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Created by timothy.pratama on 16-Sep-15.
@@ -215,32 +216,49 @@ public class Util {
         return null;
     }
 
+    /**
+     * Fungsi untuk melakukan 10 folds cross-validation
+     * @param dataSet Data latih yang akan digunakan untuk pengujian Classifier
+     * @param classifier Model Classifier yang akan diuji
+     * @return Evaluasi hasil pengujian Classifier
+     */
+    public static Evaluation crossValidationTest(Instances dataSet, Classifier classifier)
+    {
+        try
+        {
+            Evaluation eval = new Evaluation(dataSet);
+            eval.crossValidateModel(classifier, dataSet, 10, new Random(1));
+            return eval;
+        }
+
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static void main(String [] args)
     {
-        /* Testing reading data set from ARFF */
         System.out.println("========== Reading File From ARFF ==========");
         Instances dataSet = Util.readARFF("weather.nominal.arff");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
-        /* Testing resampling data set */
         System.out.println("\n========== Resampling Data Set ==========");
         dataSet = Util.resampleDataSet(dataSet);
         System.out.println(dataSet.toString());
 
-        /* Testing reading data set from CSV */
         System.out.println("\n========== Reading File From CSV ==========");
         dataSet = Util.readCSV("weather.nominal.csv");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
-        /* Testing removing an attribute from data set */
         System.out.println("\n========== Removing Class Attributes ==========");
         dataSet = readARFF("weather.nominal.arff");
         dataSet = Util.removeAttribute(dataSet,dataSet.numAttributes());
         System.out.println(dataSet.toString());
 
-        /* Testing building classifier */
         System.out.println("\n========== Building Naive Bayes Classifier ==========");
         dataSet = Util.readARFF("weather.nominal.arff");
         Classifier classifier = Util.buildClassifier(dataSet, ClassifierType.NaiveBayes);
@@ -271,6 +289,18 @@ public class Util {
         System.out.println("\n========== Testing J48 Classifier ==========");
         classifier = Util.buildClassifier(dataSet, ClassifierType.J48);
         eval = Util.testClassifier(classifier, dataSet, trainSet);
+        System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Cross Validation Naive Bayes Classifier ==========");
+        eval = Util.crossValidationTest(dataSet, new NaiveBayes());
+        System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Cross Validation ID3 Classifier ==========");
+        eval = Util.crossValidationTest(dataSet, new Id3());
+        System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
+
+        System.out.println("\n========== Cross Validation J48 Classifier ==========");
+        eval = Util.crossValidationTest(dataSet, new J48());
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
     }
 }
