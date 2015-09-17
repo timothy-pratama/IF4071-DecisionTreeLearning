@@ -193,41 +193,40 @@ public class Util {
     public static void main(String [] args)
     {
         /* Testing reading data set from ARFF */
-        System.out.println("Reading file from ARFF");
+        System.out.println("===== Reading file from ARFF =====");
         Instances dataSet = Util.readARFF("weather.nominal.arff");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
         /* Testing resampling data set */
-        System.out.println("\nResampling data set");
+        System.out.println("\n===== Resampling data set =====");
         dataSet = Util.resampleDataSet(dataSet);
         System.out.println(dataSet.toString());
 
         /* Testing reading data set from CSV */
-        System.out.println("\nReading file from CSV");
-        dataSet = Util.readCSV("dataSet.csv");
+        System.out.println("\n===== Reading file from CSV =====");
+        dataSet = Util.readCSV("weather.nominal.csv");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
         /* Testing removing an attribute from data set */
-        System.out.println("\nRemoving class attributes");
+        System.out.println("\n===== Removing class attributes =====");
         dataSet = readARFF("weather.nominal.arff");
         dataSet = Util.removeAttribute(dataSet,dataSet.numAttributes());
         System.out.println(dataSet.toString());
 
         /* Testing building classifier */
-        Instances dataSet;
-        System.out.println("\nBuilding Naive Bayes classifier");
+        System.out.println("\n===== Building Naive Bayes classifier =====");
         dataSet = Util.readARFF("weather.nominal.arff");
         Classifier classifier = Util.buildClassifier(dataSet, ClassifierType.NaiveBayes);
         System.out.println(classifier.toString());
 
-        System.out.println("\nBuilding ID3 classifier");
+        System.out.println("\n===== Building ID3 classifier =====");
         dataSet = Util.readARFF("weather.nominal.arff");
         classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
         System.out.println(classifier.toString());
 
-        System.out.println("\nBuilding J48 classifier");
+        System.out.println("\n===== Building J48 classifier =====");
         dataSet = Util.readARFF("weather.nominal.arff");
         classifier = Util.buildClassifier(dataSet, ClassifierType.J48);
         System.out.println(classifier.toString());
