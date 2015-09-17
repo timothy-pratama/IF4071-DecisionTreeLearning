@@ -1,3 +1,7 @@
+import weka.classifiers.Classifier;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.trees.Id3;
+import weka.classifiers.trees.J48;
 import weka.core.Instances;
 import weka.core.Utils;
 import weka.core.converters.CSVLoader;
@@ -15,9 +19,16 @@ import java.io.IOException;
 public class Util {
 
     private static String pathDataSet = "dataSet/";
+    public static enum ClassifierType
+    {
+        NaiveBayes,
+        ID3,
+        J48
+    }
+
 
     /**
-     *
+     * Fungsi ini digunakan untuk membaca data set dengan format arff
      * @param namaFile Nama file data set dengan format arff
      * @return Instances dari data set
      */
@@ -43,6 +54,7 @@ public class Util {
     }
 
     /**
+     * Fungsi ini digunakan untuk membaca data set dalam format csv
      * @param namaFile Nama file data set dengan format csv
      * @return Instances dari data set
      */
@@ -68,6 +80,7 @@ public class Util {
     }
 
     /**
+     * Fungsi ini digunakan untuk membuang atribut ke X dari sebuah data set
      * @param dataSet Data set yang akan di-filter
      * @param attributeIndex Atribut yang akan dibuang dari data set (bernilai dari 1 sampai jumlah atribut)
      * @return Data set dengan atribut ke attributeIndex sudah dibuang
@@ -92,6 +105,11 @@ public class Util {
         }
     }
 
+    /**
+     * Fungsi ini digunakan untuk melakukan resampling pada data set
+     * @param dataSet Data set yang akan di-resampling
+     * @return data set yang sudah di-resampling
+     */
     public static Instances resampleDataSet(Instances dataSet)
     {
         try
@@ -111,25 +129,107 @@ public class Util {
         }
     }
 
+    /**
+     * Build a classifier
+     * @param classifierType Classifier Type (ID3 | J48 | NaiveBayes)
+     */
+    public static Classifier buildClassifier(Instances dataSet, ClassifierType classifierType)
+    {
+        switch (classifierType)
+        {
+            case ID3:
+            {
+                try
+                {
+                    Id3 id3 = new Id3();
+                    id3.buildClassifier(dataSet);
+                    return id3;
+                }
+
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                break;
+            }
+
+            case J48:
+            {
+                try
+                {
+                    String options = "-C 0.25 -M 2";
+                    J48 j48 = new J48();
+                    j48.setOptions(Utils.splitOptions(options));
+                    j48.buildClassifier(dataSet);
+                    return j48;
+                }
+
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                break;
+            }
+
+            case NaiveBayes:
+            {
+                try
+                {
+                    NaiveBayes naiveBayes = new NaiveBayes();
+                    naiveBayes.buildClassifier(dataSet);
+                    return naiveBayes;
+                }
+
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                break;
+            }
+        }
+        return null;
+    }
+
     public static void main(String [] args)
     {
+        /* Testing reading data set from ARFF */
         System.out.println("Reading file from ARFF");
         Instances dataSet = Util.readARFF("weather.nominal.arff");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
+        /* Testing resampling data set */
         System.out.println("\nResampling data set");
         dataSet = Util.resampleDataSet(dataSet);
         System.out.println(dataSet.toString());
 
+        /* Testing reading data set from CSV */
         System.out.println("\nReading file from CSV");
         dataSet = Util.readCSV("dataSet.csv");
         System.out.println(dataSet.toString());
         System.out.println("Class Attribute: " + dataSet.attribute(dataSet.classIndex()));
 
+        /* Testing removing an attribute from data set */
         System.out.println("\nRemoving class attributes");
         dataSet = readARFF("weather.nominal.arff");
         dataSet = Util.removeAttribute(dataSet,dataSet.numAttributes());
         System.out.println(dataSet.toString());
+
+        /* Testing building classifier */
+        Instances dataSet;
+        System.out.println("\nBuilding Naive Bayes classifier");
+        dataSet = Util.readARFF("weather.nominal.arff");
+        Classifier classifier = Util.buildClassifier(dataSet, ClassifierType.NaiveBayes);
+        System.out.println(classifier.toString());
+
+        System.out.println("\nBuilding ID3 classifier");
+        dataSet = Util.readARFF("weather.nominal.arff");
+        classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
+        System.out.println(classifier.toString());
+
+        System.out.println("\nBuilding J48 classifier");
+        dataSet = Util.readARFF("weather.nominal.arff");
+        classifier = Util.buildClassifier(dataSet, ClassifierType.J48);
+        System.out.println(classifier.toString());
     }
 }
