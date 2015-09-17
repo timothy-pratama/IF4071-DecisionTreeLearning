@@ -12,7 +12,9 @@ import weka.filters.Filter;
 import weka.filters.supervised.instance.Resample;
 import weka.filters.unsupervised.attribute.Remove;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
@@ -23,6 +25,7 @@ public class Util {
 
     private static String pathDataSet = "dataSet/";
     private static String pathSavedModel = "savedModel/";
+    private static String pathClassify = "classifiedInstance/";
 
     public static enum ClassifierType
     {
@@ -272,6 +275,11 @@ public class Util {
         return null;
     }
 
+    /**
+     * Fungsi ini digunakan untuk menyimpan Classifier ke file eksternal
+     * @param filename Nama file untuk menyimpan model
+     * @param classifier Classifier yang akan disimpan
+     */
     public static void saveModel(String filename, Classifier classifier)
     {
         try
@@ -285,6 +293,11 @@ public class Util {
         }
     }
 
+    /**
+     * Fungsi ini digunakan untuk Classifier data dari file
+     * @param filename nama file yang menyimpan model Classifier
+     * @return Classifier
+     */
     public static Classifier loadModel(String filename)
     {
         try
@@ -297,6 +310,34 @@ public class Util {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void classify(String filename, Classifier classifier)
+    {
+        try
+        {
+            Instances input = readARFF(filename);
+            input.setClassIndex(input.numAttributes()-1);
+            for(int i=0; i<input.numInstances(); i++)
+            {
+                double classLabel = classifier.classifyInstance(input.instance(i));
+                input.instance(i).setClassValue(classLabel);
+                System.out.println("Instance: " + input.instance(i));
+                System.out.println("Class: " + input.classAttribute().value((int)classLabel));
+            }
+
+            BufferedWriter writer = new BufferedWriter(
+            new FileWriter(pathClassify + "labeled." + filename));
+            writer.write(input.toString());
+            writer.newLine();
+            writer.flush();
+            writer.close();
+        }
+
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String [] args)
@@ -379,7 +420,11 @@ public class Util {
         System.out.println("\n========== Testing Save Model ==========");
         classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
         Util.saveModel("id3_weather_nominal.model", classifier);
+
         System.out.println("\n========== Testing Load Model ==========");
         System.out.println(Util.loadModel("id3_weather_nominal.model").toString());
+
+        System.out.println("\n========== Classifying Model ==========");
+        Util.classify("weather.nominal.classify.arff", classifier);
     }
 }
