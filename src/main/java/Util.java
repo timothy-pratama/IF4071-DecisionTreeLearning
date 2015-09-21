@@ -25,15 +25,7 @@ public class Util {
 
     private static String pathDataSet = "dataSet/";
     private static String pathSavedModel = "savedModel/";
-    private static String pathClassify = "classifiedInstance/";
-
-    public static enum ClassifierType
-    {
-        NaiveBayes,
-        ID3,
-        J48
-    }
-
+    private static String pathClassifyResult = "classifiedInstance/";
 
     /**
      * Fungsi ini digunakan untuk membaca data set dengan format arff
@@ -125,7 +117,7 @@ public class Util {
             Resample resample = new Resample();
             String filterOptions = "-B 0.0 -S 1 -Z 100.0";
             resample.setOptions(Utils.splitOptions(filterOptions));
-            resample.setRandomSeed((int)System.currentTimeMillis());
+            resample.setRandomSeed((int) System.currentTimeMillis());
             resample.setInputFormat(dataSet);
             Instances newDataSet = Filter.useFilter(dataSet,resample);
             return newDataSet;
@@ -138,63 +130,18 @@ public class Util {
     }
 
     /**
-     * Build a classifier
-     * @param classifierType Classifier Type (ID3 | J48 | NaiveBayes)
-     * @return Classifier yang sesuai
+     * Fungsi ini digunakan untuk melatih sebuah Classifier
+     * @param dataSet Data yang digunakan untuk membuat Classifier
+     * @param classifier Classifier yang akan dilatih
+     * @return Classifier yang sudah dilatih dengan menggunakan data latih
      */
-    public static Classifier buildClassifier(Instances dataSet, ClassifierType classifierType)
+    public static Classifier buildClassifier(Instances dataSet, Classifier classifier)
     {
-        switch (classifierType)
-        {
-            case ID3:
-            {
-                try
-                {
-                    Id3 id3 = new Id3();
-                    id3.buildClassifier(dataSet);
-                    return id3;
-                }
-
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-                break;
-            }
-
-            case J48:
-            {
-                try
-                {
-                    String options = "-C 0.25 -M 2";
-                    J48 j48 = new J48();
-                    j48.setOptions(Utils.splitOptions(options));
-                    j48.buildClassifier(dataSet);
-                    return j48;
-                }
-
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-                break;
-            }
-
-            case NaiveBayes:
-            {
-                try
-                {
-                    NaiveBayes naiveBayes = new NaiveBayes();
-                    naiveBayes.buildClassifier(dataSet);
-                    return naiveBayes;
-                }
-
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-                break;
-            }
+        try {
+            classifier.buildClassifier(dataSet);
+            return classifier;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -327,7 +274,7 @@ public class Util {
             }
 
             BufferedWriter writer = new BufferedWriter(
-            new FileWriter(pathClassify + "labeled." + filename));
+            new FileWriter(pathClassifyResult + "labeled." + filename));
             writer.write(input.toString());
             writer.newLine();
             writer.flush();
@@ -363,33 +310,33 @@ public class Util {
 
         System.out.println("\n========== Building Naive Bayes Classifier ==========");
         dataSet = Util.readARFF("weather.nominal.arff");
-        Classifier classifier = Util.buildClassifier(dataSet, ClassifierType.NaiveBayes);
+        Classifier classifier = Util.buildClassifier(dataSet, new NaiveBayes());
         System.out.println(classifier.toString());
 
         System.out.println("\n========== Building ID3 Classifier ==========");
         dataSet = Util.readARFF("weather.nominal.arff");
-        classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
+        classifier = Util.buildClassifier(dataSet, new Id3());
         System.out.println(classifier.toString());
 
         System.out.println("\n========== Building J48 Classifier ==========");
         dataSet = Util.readARFF("weather.nominal.arff");
-        classifier = Util.buildClassifier(dataSet, ClassifierType.J48);
+        classifier = Util.buildClassifier(dataSet, new J48());
         System.out.println(classifier.toString());
 
         System.out.println("\n========== Testing Naive Bayes Classifier ==========");
         dataSet = Util.readARFF("weather.nominal.arff");
         Instances trainSet = readARFF("weather.nominal.test.arff");
-        classifier = Util.buildClassifier(dataSet, ClassifierType.NaiveBayes);
+        classifier = Util.buildClassifier(dataSet, new NaiveBayes());
         Evaluation eval = Util.testClassifier(classifier, dataSet, trainSet);
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
 
         System.out.println("\n========== Testing ID3 Classifier ==========");
-        classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
+        classifier = Util.buildClassifier(dataSet, new Id3());
         eval = Util.testClassifier(classifier, dataSet, trainSet);
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
 
         System.out.println("\n========== Testing J48 Classifier ==========");
-        classifier = Util.buildClassifier(dataSet, ClassifierType.J48);
+        classifier = Util.buildClassifier(dataSet, new J48());
         eval = Util.testClassifier(classifier, dataSet, trainSet);
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
 
@@ -418,7 +365,7 @@ public class Util {
         System.out.println(eval.toSummaryString("\nResults\n===========\n", false));
 
         System.out.println("\n========== Testing Save Model ==========");
-        classifier = Util.buildClassifier(dataSet, ClassifierType.ID3);
+        classifier = Util.buildClassifier(dataSet, new Id3());
         Util.saveModel("id3_weather_nominal.model", classifier);
 
         System.out.println("\n========== Testing Load Model ==========");
