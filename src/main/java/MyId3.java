@@ -1,4 +1,6 @@
 import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
+import weka.classifiers.trees.Id3;
 import weka.core.*;
 
 import java.util.Enumeration;
@@ -31,7 +33,7 @@ public class MyId3 extends Classifier {
     /**
      * Attribute for storing a leaf's class distribution for determining class value.
      */
-    private double[] ClassDistribution;
+    private double[] classDistribution;
 
     /**
      * Attribute for the instances' Class possible values
@@ -69,8 +71,11 @@ public class MyId3 extends Classifier {
 
     private void createTree(Instances dataSet, double mostCommonClassValue)
     {
-        /* Initialization for several attributes */
-        ClassDistribution = new double[dataSet.numClasses()];
+        log("Data Set", dataSet.toString());
+
+        /* Several variables initialization */
+        classAttribute = dataSet.classAttribute();
+        classDistribution = new double[dataSet.numClasses()];
 
         /* Check if there is no instances for this node -> possibly missing examples case */
         if(dataSet.numInstances() == 0)
@@ -89,7 +94,37 @@ public class MyId3 extends Classifier {
                 log("Attribute", attribute.toString());
                 double infoGain = computeInfoGain(dataSet, attribute);
                 infoGains[attribute.index()] = infoGain;
-                System.out.println("==========Info Gain: " + infoGain);
+//                System.out.println("==========Info Gain: " + infoGain);
+            }
+
+            splitAttribute = dataSet.attribute(Utils.maxIndex(infoGains));
+//            System.out.println("==========The Best Attribute for Splitting: " + splitAttribute.toString());
+
+            //This node is a leaf, the data sets only have 1 class.
+            if(Utils.eq(infoGains[splitAttribute.index()],0))
+            {
+                splitAttribute = null;
+                Enumeration instancesEnumeration = dataSet.enumerateInstances();
+                while(instancesEnumeration.hasMoreElements())
+                {
+                    Instance instance = (Instance) instancesEnumeration.nextElement();
+                    classDistribution[((int) instance.classValue())]++;
+                }
+                Utils.normalize(classDistribution);
+                classValue = Utils.maxIndex(classDistribution);
+
+//                System.out.println("==========This node Class: " + dataSet.classAttribute().value((int) classValue));
+            }
+            else /* Split the data by attribute, make new tree */
+            {
+//                System.out.println("==========Split data by attribute: " + splitAttribute.toString());
+                Instances[] subDataSet = splitDataByAttribute(dataSet, splitAttribute);
+                childs = new MyId3[splitAttribute.numValues()];
+                for(int i=0; i<splitAttribute.numValues(); i++)
+                {
+                    childs[i] = new MyId3();
+                    childs[i].createTree(subDataSet[i], mostCommonClassValue);
+                }
             }
         }
     }
@@ -100,25 +135,32 @@ public class MyId3 extends Classifier {
         /* Compute initial entropy */
 
         double initialEntropi = computeEntropy(dataSet);
-        System.out.println("==========initial entropy: " + initialEntropi);
+//        System.out.println("==========initial entropy: " + initialEntropi);
 
         Instances [] subDataSet = splitDataByAttribute(dataSet, attribute);
-        System.out.println("==========Sub Data Set:");
+//        System.out.println("==========Sub Data Set:");
         for(Instances instances : subDataSet)
         {
-            System.out.println(instances.toString());
+//            System.out.println(instances.toString());
         }
 
         double [] entropies = new double[attribute.numValues()];
         for(int i=0; i<attribute.numValues(); i++)
         {
-            entropies[i] = computeEntropy(subDataSet[i]);
+            if(subDataSet[i].numInstances() > 0)
+            {
+                entropies[i] = computeEntropy(subDataSet[i]);
+            }
+            else
+            {
+                entropies[i] = 0;
+            }
         }
 
-        System.out.println("==========entropies");
+//        System.out.println("==========entropies");
         for(double d : entropies)
         {
-            System.out.println(d);
+//            System.out.println(d);
         }
 
         double infoGain = initialEntropi;
@@ -225,12 +267,30 @@ public class MyId3 extends Classifier {
 
     @Override
     public double classifyInstance(Instance instance) throws Exception {
-        return super.classifyInstance(instance);
+        if (instance.hasMissingValue()) {
+            throw new NoSupportForMissingValuesException("Id3: no missing values, "
+                    + "please.");
+        }
+        if (splitAttribute == null) {
+            return classValue;
+        } else {
+            return childs[(int) instance.value(splitAttribute)].
+                    classifyInstance(instance);
+        }
     }
 
     @Override
     public double[] distributionForInstance(Instance instance) throws Exception {
-        return super.distributionForInstance(instance);
+        if (instance.hasMissingValue()) {
+            throw new NoSupportForMissingValuesException("Id3: no missing values, "
+                    + "please.");
+        }
+        if (splitAttribute == null) {
+            return classDistribution;
+        } else {
+            return childs[(int) instance.value(splitAttribute)].
+                    distributionForInstance(instance);
+        }
     }
 
     @Override
@@ -256,20 +316,68 @@ public class MyId3 extends Classifier {
         return super.getRevision();
     }
 
+    private void log(String logName, String logMessage)
+    {
+//        System.out.printf("===============[%s-Start]===============\n%s\n===============[%s-End]===============\n", logName, logMessage, logName);
+    }
+
+    private String toString(int level) {
+
+        StringBuffer text = new StringBuffer();
+
+        if (splitAttribute == null) {
+            if (Instance.isMissingValue(classValue)) {
+                text.append(": null");
+            } else {
+                text.append(": " + classAttribute.value((int) classValue));
+            }
+        } else {
+            for (int j = 0; j < splitAttribute.numValues(); j++) {
+                text.append("\n");
+                for (int i = 0; i < level; i++) {
+                    text.append("|  ");
+                }
+                text.append(splitAttribute.name() + " = " + splitAttribute.value(j));
+                text.append(childs[j].toString(level + 1));
+            }
+        }
+        return text.toString();
+    }
+
+    @Override
+    public String toString() {
+
+        if ((classDistribution == null) && (childs == null)) {
+            return "MyId3: No model built yet.";
+        }
+        return "MyId3\n\n" + toString(0);
+    }
+
     public static void main (String [] args) {
         try
         {
-            Classifier classifier = new MyId3();
-            classifier.buildClassifier(Util.readARFF("weather.nominal.arff"));
+            Instances dataSet = Util.readARFF("weather.nominal.arff");
+
+            Classifier myId3 = new MyId3();
+            myId3.buildClassifier(dataSet);
+            System.out.println(myId3.toString());
+
+            System.out.println("\n==============================\n");
+
+            Classifier id3 = new Id3();
+            id3.buildClassifier(dataSet);
+            System.out.println(id3.toString());
+
+            Evaluation myId3Evaluation = Util.crossValidationTest(dataSet, new MyId3());
+            Evaluation id3Evaluation = Util.crossValidationTest(dataSet, new Id3());
+            System.out.println("\n===== MyId3 Cross Validation Result =====\n");
+            System.out.println(myId3Evaluation.toMatrixString());
+            System.out.println("\n===== Id3 Cross Validation Result =====\n");
+            System.out.println(id3Evaluation.toMatrixString());
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-    }
-
-    private void log(String logName, String logMessage)
-    {
-        System.out.printf("===============[%s]===============\n%s\n===============[%s]===============\n", logName, logMessage, logName);
     }
 }
