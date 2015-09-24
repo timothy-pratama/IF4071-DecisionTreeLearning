@@ -45,6 +45,12 @@ public class MyId3 extends Classifier {
      */
     private double mostCommonClassValue;
 
+
+    /**
+     * Build MyId3 model with the given data set
+     * @param instances Data set for building the classifier
+     * @throws Exception
+     */
     @Override
     public void buildClassifier(Instances instances) throws Exception {
         /* Make sure that there are no continues value are entered! */
@@ -69,6 +75,11 @@ public class MyId3 extends Classifier {
         createTree(data, mostCommonClassValue);
     }
 
+    /**
+     * Create the decision tree based on the given data set
+     * @param dataSet
+     * @param mostCommonClassValue
+     */
     private void createTree(Instances dataSet, double mostCommonClassValue)
     {
         log("Data Set", dataSet.toString());
@@ -129,6 +140,12 @@ public class MyId3 extends Classifier {
         }
     }
 
+    /**
+     * Compute the infogain for the current data set for certain attribute
+     * @param dataSet data set that is going to be used to compute the info gain
+     * @param attribute attribute whose info gain are going to be computed
+     * @return
+     */
     private double computeInfoGain(Instances dataSet, Attribute attribute)
     {
         /* Info gain: Initial entropy - final entropy */
@@ -265,6 +282,12 @@ public class MyId3 extends Classifier {
         return subDataSet;
     }
 
+    /**
+     * Classify given instance
+     * @param instance Data that are going to be classified
+     * @return Class Value for the instance
+     * @throws Exception
+     */
     @Override
     public double classifyInstance(Instance instance) throws Exception {
         if (instance.hasMissingValue()) {
@@ -278,6 +301,13 @@ public class MyId3 extends Classifier {
         }
     }
 
+
+    /**
+     * Return the class distribution for the current instance
+     * @param instance the instance that is going to be computed it's class distribution
+     * @return the class distribution for this instance
+     * @throws Exception
+     */
     @Override
     public double[] distributionForInstance(Instance instance) throws Exception {
         if (instance.hasMissingValue()) {
@@ -291,6 +321,10 @@ public class MyId3 extends Classifier {
         }
     }
 
+    /**
+     * Return the capabilty of MyId3
+     * @return
+     */
     @Override
     public Capabilities getCapabilities() {
         Capabilities result = super.getCapabilities();
@@ -319,6 +353,11 @@ public class MyId3 extends Classifier {
 //        System.out.printf("===============[%s-Start]===============\n%s\n===============[%s-End]===============\n", logName, logMessage, logName);
     }
 
+    /**
+     * Return the string representation for the current level
+     * @param level Level that are going to be printed
+     * @return
+     */
     private String toString(int level) {
 
         StringBuffer text = new StringBuffer();
@@ -342,6 +381,10 @@ public class MyId3 extends Classifier {
         return text.toString();
     }
 
+    /**
+     * Return the string representation for MyId3
+     * @return
+     */
     @Override
     public String toString() {
 
