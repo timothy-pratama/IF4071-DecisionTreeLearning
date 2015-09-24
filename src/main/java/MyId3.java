@@ -268,8 +268,7 @@ public class MyId3 extends Classifier {
     @Override
     public double classifyInstance(Instance instance) throws Exception {
         if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("Id3: no missing values, "
-                    + "please.");
+            throw new NoSupportForMissingValuesException("MyId3 can't support missing values!");
         }
         if (splitAttribute == null) {
             return classValue;
@@ -282,8 +281,7 @@ public class MyId3 extends Classifier {
     @Override
     public double[] distributionForInstance(Instance instance) throws Exception {
         if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("Id3: no missing values, "
-                    + "please.");
+            throw new NoSupportForMissingValuesException("MyId3 can't support missing values!");
         }
         if (splitAttribute == null) {
             return classDistribution;
