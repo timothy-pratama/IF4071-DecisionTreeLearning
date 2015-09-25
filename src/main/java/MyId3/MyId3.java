@@ -1,3 +1,6 @@
+package MyId3;
+
+import Util.Util;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.Id3;
@@ -11,12 +14,7 @@ import java.util.Enumeration;
 public class MyId3 extends Classifier {
 
     /**
-     * Attribut for serialization
-     */
-    static final long serialVersionUID = -2693273657194322561L;
-
-    /**
-     * Childs from an MyId3 Node
+     * Childs from an MyId3.MyId3 Node
      */
     private MyId3[] childs;
 
@@ -47,7 +45,7 @@ public class MyId3 extends Classifier {
 
 
     /**
-     * Build MyId3 model with the given data set
+     * Build MyId3.MyId3 model with the given data set
      * @param instances Data set for building the classifier
      * @throws Exception
      */
@@ -291,7 +289,7 @@ public class MyId3 extends Classifier {
     @Override
     public double classifyInstance(Instance instance) throws Exception {
         if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("MyId3 can't support missing values!");
+            throw new NoSupportForMissingValuesException("MyId3.MyId3 can't support missing values!");
         }
         if (splitAttribute == null) {
             return classValue;
@@ -311,7 +309,7 @@ public class MyId3 extends Classifier {
     @Override
     public double[] distributionForInstance(Instance instance) throws Exception {
         if (instance.hasMissingValue()) {
-            throw new NoSupportForMissingValuesException("MyId3 can't support missing values!");
+            throw new NoSupportForMissingValuesException("MyId3.MyId3 can't support missing values!");
         }
         if (splitAttribute == null) {
             return classDistribution;
@@ -322,7 +320,7 @@ public class MyId3 extends Classifier {
     }
 
     /**
-     * Return the capabilty of MyId3
+     * Return the capabilty of MyId3.MyId3
      * @return
      */
     @Override
@@ -382,16 +380,16 @@ public class MyId3 extends Classifier {
     }
 
     /**
-     * Return the string representation for MyId3
+     * Return the string representation for MyId3.MyId3
      * @return
      */
     @Override
     public String toString() {
 
         if ((classDistribution == null) && (childs == null)) {
-            return "MyId3: No model built yet.";
+            return "MyId3.MyId3: No model built yet.";
         }
-        return "MyId3\n\n" + toString(0);
+        return "MyId3.MyId3\n\n" + toString(0);
     }
 
     public static void main (String [] args) {
@@ -411,7 +409,7 @@ public class MyId3 extends Classifier {
 
             Evaluation myId3Evaluation = Util.crossValidationTest(dataSet, new MyId3());
             Evaluation id3Evaluation = Util.crossValidationTest(dataSet, new Id3());
-            System.out.println("\n===== MyId3 Cross Validation Result =====\n");
+            System.out.println("\n===== MyId3.MyId3 Cross Validation Result =====\n");
             System.out.println(myId3Evaluation.toMatrixString());
             System.out.println("\n===== Id3 Cross Validation Result =====\n");
             System.out.println(id3Evaluation.toMatrixString());
