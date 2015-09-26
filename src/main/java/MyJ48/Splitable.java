@@ -43,7 +43,7 @@ public class Splitable extends NodeType{
     /**
      * This node gain ratio
      */
-    public double ratioGain;
+    public double gainRatio;
 
     /**
      * Number of branches created from this node
@@ -75,7 +75,7 @@ public class Splitable extends NodeType{
         numOfSubsets = 0;
         splitPointValue = Double.MAX_VALUE;
         infoGain = 0;
-        ratioGain = 0;
+        gainRatio = 0;
         numberOfSplitPoints = 0;
 
         if(splitAttribute.isNominal())
@@ -112,7 +112,9 @@ public class Splitable extends NodeType{
             System.out.println("=====Splitable!");
             numOfSubsets = numberOfBranch;
             infoGain = classDistribution.calculateInfoGain(totalWeight);
-            ratioGain = 0;
+            System.out.println("=====Information Gain: " + infoGain);
+            gainRatio = classDistribution.calculateGainRatio(infoGain);
+            System.out.println("=====Gain Ratio: " + gainRatio);
         }
     }
 

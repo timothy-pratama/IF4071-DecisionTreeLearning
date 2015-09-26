@@ -129,29 +129,53 @@ public class J48ClassDistribution {
             initialEntropy = initialEntropy + (p * log2(p));
         }
         initialEntropy = initialEntropy * -1;
-        System.out.printf("=====Initial entropy: %f\n", initialEntropy);
+//        System.out.printf("=====Initial entropy: %f\n", initialEntropy);
 
         for (int i=0; i<numSubDatasets(); i++)
         {
             double finalEntropy = 0;
             for(int j=0; j<numClasses(); j++)
             {
-                double p = weightClassPerSubdataset[i][j]/weightPerSubDataset[i];
+                double p = 0;
+                if(weightPerSubDataset[i] > 0)
+                {
+                    p = weightClassPerSubdataset[i][j] / weightPerSubDataset[i];
+                }
                 finalEntropy = finalEntropy + (p * log2(p));
             }
             finalEntropy = finalEntropy * -1;
             initialEntropy = initialEntropy - (weightPerSubDataset[i]/weightTotal*finalEntropy);
         }
-        System.out.println("=====Information Gain: " + initialEntropy);
+//        System.out.println("=====Information Gain: " + initialEntropy);
 
         unknownValues = instancesTotalWeight-weightTotal;
         unknownRate = unknownRate/instancesTotalWeight;
 
-        System.out.println("=====Unknown Values: " + unknownValues);
-        System.out.println("=====Unknown Rate: " + unknownRate);
-        System.out.println("=====Information Gain Final: " + (1-unknownRate)*initialEntropy);
+//        System.out.println("=====Unknown Values: " + unknownValues);
+//        System.out.println("=====Unknown Rate: " + unknownRate);
+//        System.out.println("=====Information Gain Final: " + (1-unknownRate)*initialEntropy);
 
         return ((1-unknownRate)*initialEntropy);
+    }
+
+    public double calculateGainRatio(double infoGain) {
+
+        /* splitInformation = -(p1 * log2 p1 + p2 * log2 p2 + ...) */
+        double splitInformation = 0;
+        for(int i=0; i<numSubDatasets(); i++)
+        {
+            double p = weightPerSubDataset[i]/weightTotal;
+            splitInformation = splitInformation + (p * log2(p));
+        }
+        splitInformation = splitInformation * -1;
+        if(Utils.eq(splitInformation,0))
+        {
+            return 0;
+        }
+        else
+        {
+            return infoGain / splitInformation;
+        }
     }
 
     private double log2(double a) {
@@ -183,7 +207,7 @@ public class J48ClassDistribution {
         System.out.println("===== WeightClassPerSubdataset:");
         for(int i=0; i<numSubDatasets(); i++)
         {
-                System.out.printf("Dataset[%d]: %f %f\n",i,weightClassPerSubdataset[i][0], weightClassPerSubdataset[i][1]);
+            System.out.printf("Dataset[%d]: %f %f\n",i,weightClassPerSubdataset[i][0], weightClassPerSubdataset[i][1]);
         }
     }
 }
