@@ -1,6 +1,7 @@
 package MyJ48;
 
 import Util.Util;
+import org.w3c.dom.Attr;
 import weka.classifiers.Classifier;
 import weka.core.*;
 
@@ -51,6 +52,11 @@ public class MyJ48 extends Classifier {
      */
     private NodeType nodeType;
 
+    /**
+     * Subdataset for this node
+     */
+    Instances [] subDataset;
+
     @Override
     public void buildClassifier(Instances instances) throws Exception {
         // Check if the data set is able to be proccessed using MyJ48.MyJ48
@@ -70,29 +76,33 @@ public class MyJ48 extends Classifier {
         testSetDistribution = null;
 
         nodeType = processNode();
+        if(nodeType.numOfSubsets > 1)
+        {
+
+        }
 
     }
 
     private NodeType processNode()
     {
-        double minResult;
+        double minGainRatio;
         Splitable[] splitables;
         Splitable bestSplitable = null;
         NotSplitable notSplitable = null;
         double averageInfoGain = 0;
         int usefulSplitables = 0;
-        J48ClassDistribution distribution;
+        J48ClassDistribution classDistribution;
         double totalWeight;
 
         try{
-            distribution = new J48ClassDistribution(dataSet);
-            notSplitable = new NotSplitable(distribution);
+            classDistribution = new J48ClassDistribution(dataSet);
+            notSplitable = new NotSplitable(classDistribution);
 
             /* if there are not enough instances for splitting */
             /* if the data set only belong to 1 class */
             /* Then can't split this node much further */
             if(Utils.sm(dataSet.numInstances(), 2 * minimalInstances) ||
-               Utils.eq(distribution.weightTotal, distribution.weightPerClass[Utils.maxIndex(distribution.weightPerClass)]))
+               Utils.eq(classDistribution.weightTotal, classDistribution.weightPerClass[Utils.maxIndex(classDistribution.weightPerClass)]))
             {
                 return notSplitable;
             }
@@ -108,7 +118,51 @@ public class MyJ48 extends Classifier {
                 Attribute attribute = (Attribute) attributeEnumeration.nextElement();
                 splitables[attribute.index()] = new Splitable(attribute, minimalInstances, dataSet.sumOfWeights());
                 splitables[attribute.index()].buildClassifier(dataSet);
+                if(splitables[attribute.index()].validateNode())
+                {
+                    if(dataSet != null)
+                    {
+                        averageInfoGain = averageInfoGain +  splitables[attribute.index()].infoGain;
+                        usefulSplitables++;
+                    }
+                }
             }
+
+            if (usefulSplitables == 0)
+            {
+                return notSplitable;
+            }
+            averageInfoGain = averageInfoGain/(double)usefulSplitables;
+
+            minGainRatio = 0;
+            attributeEnumeration = dataSet.enumerateAttributes();
+            while(attributeEnumeration.hasMoreElements())
+            {
+                Attribute attribute = (Attribute) attributeEnumeration.nextElement();
+                if(splitables[attribute.index()].validateNode())
+                {
+                    if(splitables[attribute.index()].infoGain >= (averageInfoGain - 0.001) &&
+                       Utils.gr(splitables[attribute.index()].gainRatio, minGainRatio))
+                    {
+                        bestSplitable = splitables[attribute.index()];
+                        minGainRatio = bestSplitable.gainRatio;
+                    }
+                }
+            }
+
+            if (Utils.eq(minGainRatio,0))
+            {
+                return notSplitable;
+            }
+
+            bestSplitable.addInstanceWithMissingvalue();
+
+            if(dataSet != null)
+            {
+                bestSplitable.setSplitPoint();
+            }
+
+            return bestSplitable;
         }
 
         catch (Exception e) {

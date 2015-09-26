@@ -1,5 +1,6 @@
 package MyJ48;
 
+import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Utils;
@@ -284,6 +285,45 @@ public class J48ClassDistribution {
         for(int i=0; i<numSubDatasets(); i++)
         {
             System.out.printf("Dataset[%d]: %f %f\n",i,weightClassPerSubdataset[i][0], weightClassPerSubdataset[i][1]);
+        }
+    }
+
+    public void addInstanceWithMissingValue(Instances dataset, Attribute attribute) {
+        double[] valueProbabilities;
+        double weight, newWeight;
+        int classIndex;
+        Instance instance;
+
+        valueProbabilities = new double[numSubDatasets()];
+        for (int i=0; i<numSubDatasets(); i++)
+        {
+            if(Utils.eq(weightTotal,0))
+            {
+                valueProbabilities[i] = 1.0 / weightTotal;
+            }
+            else
+            {
+                valueProbabilities[i] = weightPerSubDataset[i] / weightTotal;
+            }
+        }
+
+        Enumeration instanceEnumeration = dataset.enumerateInstances();
+        while(instanceEnumeration.hasMoreElements())
+        {
+            instance = (Instance) instanceEnumeration.nextElement();
+            if(instance.isMissing(attribute))
+            {
+                classIndex = (int) instance.classValue();
+                weight = instance.weight();
+                weightPerClass[classIndex] += weight;
+                weightTotal += weight;
+                for(int i=0; i<numSubDatasets(); i++)
+                {
+                    newWeight = valueProbabilities[i] * weight;
+                    weightClassPerSubdataset[i][classIndex] += newWeight;
+                    weightPerSubDataset[i] += newWeight;
+                }
+            }
         }
     }
 }

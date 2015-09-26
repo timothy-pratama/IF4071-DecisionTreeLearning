@@ -217,4 +217,37 @@ public class Splitable extends NodeType{
             return 0;
         }
     }
+
+    public void setSplitPoint() {
+        double newSplitPoint = Double.MAX_VALUE * -1;
+        double temp;
+        Instance instance;
+
+        if(splitAttribute.isNumeric() && numOfSubsets > 1)
+        {
+            Enumeration instancesEnumeration = dataset.enumerateInstances();
+            while (instancesEnumeration.hasMoreElements())
+            {
+                instance = (Instance) instancesEnumeration.nextElement();
+                if(!instance.isMissing(splitAttribute))
+                {
+                    temp = instance.value(splitAttribute);
+                    if(Utils.gr(temp,newSplitPoint) && Utils.smOrEq(temp, splitPointValue))
+                    {
+                        newSplitPoint = temp;
+                    }
+                }
+            }
+        }
+        splitPointValue = newSplitPoint;
+    }
+
+    public void addInstanceWithMissingvalue() {
+        addInstanceWithMissingValue(dataset, splitAttribute);
+    }
+
+    private void addInstanceWithMissingValue(Instances dataset, Attribute attribute)
+    {
+        classDistribution.addInstanceWithMissingValue(dataset, attribute);
+    }
 }
