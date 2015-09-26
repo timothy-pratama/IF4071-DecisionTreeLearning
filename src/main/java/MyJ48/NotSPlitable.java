@@ -5,8 +5,9 @@ package MyJ48;
  */
 public class NotSplitable extends NodeType{
 
-    public NotSplitable(MyJ48Distribution distribution)
+    public NotSplitable(J48ClassDistribution distribution)
     {
-        distribution = new MyJ48Distribution(distribution);
+        distribution = new J48ClassDistribution(distribution);
+        numOfSubsets = 1;
     }
 }

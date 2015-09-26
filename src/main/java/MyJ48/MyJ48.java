@@ -4,7 +4,7 @@ import Util.Util;
 import weka.classifiers.Classifier;
 import weka.core.*;
 
-import javax.xml.soap.Node;
+import java.util.Enumeration;
 
 /**
  * Created by timothy.pratama on 24-Sep-15.
@@ -39,7 +39,7 @@ public class MyJ48 extends Classifier {
     /**
      *
      */
-    private MyJ48Distribution testSetDistribution;
+    private J48ClassDistribution testSetDistribution;
 
     /**
      * this attribute store the confidence level of the j48 tree
@@ -81,12 +81,11 @@ public class MyJ48 extends Classifier {
         NotSplitable notSplitable = null;
         double averageInfoGain = 0;
         int usefulSplitables = 0;
-        MyJ48Distribution distribution;
-        Attribute attribute;
+        J48ClassDistribution distribution;
         double totalWeight;
 
         try{
-            distribution = new MyJ48Distribution(data);
+            distribution = new J48ClassDistribution(data);
             notSplitable = new NotSplitable(distribution);
 
             /* if there are not enough instances for splitting */
@@ -103,12 +102,11 @@ public class MyJ48 extends Classifier {
             splitables = new Splitable[dataSet.numAttributes()];
             totalWeight = dataSet.sumOfWeights();
 
-            for (int i=0; i<dataSet.numAttributes(); i++)
+            Enumeration attributeEnumeration = dataSet.enumerateAttributes();
+            while(attributeEnumeration.hasMoreElements())
             {
-                if(i != dataSet.classIndex())
-                {
-
-                }
+                Attribute attribute = (Attribute) attributeEnumeration.nextElement();
+                splitables[attribute.index()] = new Splitable(attribute, minimalInstances, dataSet.sumOfWeights());
             }
         }
 

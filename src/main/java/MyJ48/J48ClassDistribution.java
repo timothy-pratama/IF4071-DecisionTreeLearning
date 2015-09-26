@@ -8,10 +8,10 @@ import java.util.Enumeration;
 /**
  * Created by timothy.pratama on 24-Sep-15.
  */
-public class MyJ48Distribution {
+public class J48ClassDistribution {
 
     /* Weight of instances per subdataset per class. */
-    public double weightPerSubDatasetPerClass[][];
+    public double weightPerClassPerSubdataset[][];
 
     /* Weight of instances per subdataset */
     public double weightPerSubDataset[];
@@ -26,10 +26,10 @@ public class MyJ48Distribution {
      * Create distributions with one dataset (since it's the first time).
      * @param dataSet
      */
-    public MyJ48Distribution (Instances dataSet)
+    public J48ClassDistribution(Instances dataSet)
     {
         weightTotal = 0;
-        weightPerSubDatasetPerClass = new double[1][dataSet.numClasses()];
+        weightPerClassPerSubdataset = new double[1][dataSet.numClasses()];
         weightPerSubDataset = new double[1];
         weightPerClass = new double[dataSet.numClasses()];
 
@@ -46,16 +46,16 @@ public class MyJ48Distribution {
      * @param targetDistribution
      * @return
      */
-    public MyJ48Distribution (MyJ48Distribution targetDistribution)
+    public J48ClassDistribution(J48ClassDistribution targetDistribution)
     {
         weightTotal = targetDistribution.weightTotal;
-        weightPerSubDatasetPerClass = new double[1][targetDistribution.numClasses()];
+        weightPerClassPerSubdataset = new double[1][targetDistribution.numClasses()];
         weightPerSubDataset = new double[1];
         weightPerClass = new double[targetDistribution.numClasses()];
 
         for(int i = 0; i < targetDistribution.numClasses(); i++)
         {
-            weightPerSubDatasetPerClass[0][i] = targetDistribution.weightPerClass[i];
+            weightPerClassPerSubdataset[0][i] = targetDistribution.weightPerClass[i];
             weightPerClass[i] = targetDistribution.weightPerClass[i];
         }
         weightPerSubDataset[0] = targetDistribution.weightTotal;
@@ -87,7 +87,7 @@ public class MyJ48Distribution {
     private void addInstanceToDataset(int subDatasetIndex, Instance instance)
     {
         int classIndex = (int) instance.classValue();
-        weightPerSubDatasetPerClass[subDatasetIndex][classIndex] = weightPerSubDatasetPerClass[subDatasetIndex][classIndex] + instance.weight();
+        weightPerClassPerSubdataset[subDatasetIndex][classIndex] = weightPerClassPerSubdataset[subDatasetIndex][classIndex] + instance.weight();
         weightPerSubDataset[subDatasetIndex] = weightPerSubDataset[subDatasetIndex] + instance.weight();
         weightPerClass[classIndex] = weightPerClass[classIndex] +  instance.weight();
         weightTotal = weightTotal + instance.weight();
