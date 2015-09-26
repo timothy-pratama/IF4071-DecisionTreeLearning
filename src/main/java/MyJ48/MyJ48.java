@@ -79,8 +79,27 @@ public class MyJ48 extends Classifier {
         if(nodeType.numOfSubsets > 1)
         {
             subDataset = nodeType.split(dataSet);
+//            dataSet = null;
+            childs = new MyJ48[nodeType.numOfSubsets];
+            for(int i=0; i<nodeType.numOfSubsets; i++)
+            {
+                childs[i] = createNewTree(subDataset[i]);
+            }
         }
+        else
+        {
+            is_leaf = true;
+            if(Utils.eq(dataSet.sumOfWeights(), 0))
+            {
+                is_empty = true;
+            }
+        }
+    }
 
+    private MyJ48 createNewTree(Instances subDataset) {
+        MyJ48 newMyJ48 = new MyJ48();
+        newMyJ48.createTree(subDataset);
+        return newMyJ48;
     }
 
     private NodeType processNode()
