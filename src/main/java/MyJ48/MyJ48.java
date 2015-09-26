@@ -78,7 +78,7 @@ public class MyJ48 extends Classifier {
         nodeType = processNode();
         if(nodeType.numOfSubsets > 1)
         {
-
+            subDataset = nodeType.split(dataSet);
         }
 
     }

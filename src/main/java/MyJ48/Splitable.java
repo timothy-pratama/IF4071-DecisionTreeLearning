@@ -250,4 +250,49 @@ public class Splitable extends NodeType{
     {
         classDistribution.addInstanceWithMissingValue(dataset, attribute);
     }
+
+    @Override
+    public int getSubsetIndex(Instance instance) {
+        if(instance.isMissing(splitAttribute))
+        {
+            return -1;
+        }
+        else
+        {
+            if(splitAttribute.isNominal())
+            {
+                return (int) instance.value(splitAttribute);
+            }
+            else
+            {
+                if(Utils.smOrEq(instance.value(splitAttribute), splitPointValue))
+                {
+                    return 0;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+        }
+    }
+
+    @Override
+    public double[] getWeights(Instance instance) {
+        double [] weights;
+
+        if(instance.isMissing(splitAttribute))
+        {
+            weights = new double [numOfSubsets];
+            for(int i=0; i<numOfSubsets; i++)
+            {
+                weights[i] = classDistribution.weightPerSubDataset[i]/classDistribution.weightTotal;
+            }
+            return weights;
+        }
+        else
+        {
+            return null;
+        }
+    }
 }
