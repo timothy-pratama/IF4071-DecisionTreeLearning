@@ -1,7 +1,10 @@
 package MyJ48;
 
 import weka.core.Attribute;
+import weka.core.Instance;
 import weka.core.Instances;
+
+import java.util.Enumeration;
 
 /**
  * Created by timothy.pratama on 24-Sep-15.
@@ -10,7 +13,7 @@ public class Splitable extends NodeType{
     /**
      * attribute that is going to be used for splitting
      */
-    public Attribute attribute;
+    public Attribute splitAttribute;
 
     /**
      * minimal instances required for splitting an attribute
@@ -52,9 +55,14 @@ public class Splitable extends NodeType{
      */
     public double numberOfSplitPoints;
 
+    /**
+     * This node class distribution
+     */
+    public J48ClassDistribution classDistribution;
+
     public Splitable(Attribute splitAttribute, double minimalInstances, double totalWeight)
     {
-        this.attribute = splitAttribute;
+        this.splitAttribute = splitAttribute;
         this.minimalInstances = minimalInstances;
         this.totalWeight = totalWeight;
     }
@@ -68,25 +76,36 @@ public class Splitable extends NodeType{
         ratioGain = 0;
         numberOfSplitPoints = 0;
 
-        /* different handling for nominal and numeric attributes */
-        if(attribute.isNominal())
+        if(splitAttribute.isNominal())
         {
-            numberOfBranch = attribute.numValues();
-            numberOfSplitPoints = attribute.numValues();
+            numberOfBranch = splitAttribute.numValues();
+            numberOfSplitPoints = splitAttribute.numValues();
+            processNominalAttribute();
         }
         else // attribute == numeric
         {
             numberOfBranch = 2;
             numberOfSplitPoints = 0;
+            processNumericAttribute();
         }
     }
 
-    private void handleNominalAttribute()
+    private void processNominalAttribute()
     {
-        
+        classDistribution = new J48ClassDistribution(numberOfBranch, dataset.numClasses());
+        Enumeration instanceEnumeration = dataset.enumerateInstances();
+        while(instanceEnumeration.hasMoreElements())
+        {
+            Instance instance = (Instance) instanceEnumeration.nextElement();
+            if(!instance.isMissing(splitAttribute))
+            {
+                classDistribution.addInstanceToDataset((int) instance.value(splitAttribute), instance);
+            }
+        }
+
     }
 
-    private void handleNumericAttribute()
+    private void processNumericAttribute()
     {
 
     }

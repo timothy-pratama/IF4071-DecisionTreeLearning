@@ -11,7 +11,7 @@ import java.util.Enumeration;
 public class J48ClassDistribution {
 
     /* Weight of instances per subdataset per class. */
-    public double weightPerClassPerSubdataset[][];
+    public double weightClassPerSubdataset[][];
 
     /* Weight of instances per subdataset */
     public double weightPerSubDataset[];
@@ -29,7 +29,7 @@ public class J48ClassDistribution {
     public J48ClassDistribution(Instances dataSet)
     {
         weightTotal = 0;
-        weightPerClassPerSubdataset = new double[1][dataSet.numClasses()];
+        weightClassPerSubdataset = new double[1][dataSet.numClasses()];
         weightPerSubDataset = new double[1];
         weightPerClass = new double[dataSet.numClasses()];
 
@@ -49,16 +49,30 @@ public class J48ClassDistribution {
     public J48ClassDistribution(J48ClassDistribution targetDistribution)
     {
         weightTotal = targetDistribution.weightTotal;
-        weightPerClassPerSubdataset = new double[1][targetDistribution.numClasses()];
+        weightClassPerSubdataset = new double[1][targetDistribution.numClasses()];
         weightPerSubDataset = new double[1];
         weightPerClass = new double[targetDistribution.numClasses()];
 
         for(int i = 0; i < targetDistribution.numClasses(); i++)
         {
-            weightPerClassPerSubdataset[0][i] = targetDistribution.weightPerClass[i];
+            weightClassPerSubdataset[0][i] = targetDistribution.weightPerClass[i];
             weightPerClass[i] = targetDistribution.weightPerClass[i];
         }
         weightPerSubDataset[0] = targetDistribution.weightTotal;
+    }
+
+    public J48ClassDistribution(double numberOfBranch, int numberOfClass) {
+        weightTotal = 0;
+        weightClassPerSubdataset = new double[(int) numberOfBranch][numberOfClass];
+        weightPerSubDataset = new double[(int) numberOfBranch];
+        weightPerClass = new double[numberOfClass];
+        for(int i=0; i<numberOfBranch; i++)
+        {
+            for(int j=0; j<numberOfClass; j++)
+            {
+                weightClassPerSubdataset[i][j]=4.0;
+            }
+        }
     }
 
     /**
@@ -84,10 +98,10 @@ public class J48ClassDistribution {
      * @param subDatasetIndex
      * @param instance
      */
-    private void addInstanceToDataset(int subDatasetIndex, Instance instance)
+    public void addInstanceToDataset(int subDatasetIndex, Instance instance)
     {
         int classIndex = (int) instance.classValue();
-        weightPerClassPerSubdataset[subDatasetIndex][classIndex] = weightPerClassPerSubdataset[subDatasetIndex][classIndex] + instance.weight();
+        weightClassPerSubdataset[subDatasetIndex][classIndex] = weightClassPerSubdataset[subDatasetIndex][classIndex] + instance.weight();
         weightPerSubDataset[subDatasetIndex] = weightPerSubDataset[subDatasetIndex] + instance.weight();
         weightPerClass[classIndex] = weightPerClass[classIndex] +  instance.weight();
         weightTotal = weightTotal + instance.weight();

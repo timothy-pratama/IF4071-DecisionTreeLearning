@@ -69,11 +69,11 @@ public class MyJ48 extends Classifier {
         is_empty = false;
         testSetDistribution = null;
 
-        nodeType = processNode(data);
+        nodeType = processNode();
 
     }
 
-    private NodeType processNode(Instances data)
+    private NodeType processNode()
     {
         double minResult;
         Splitable[] splitables;
@@ -85,7 +85,7 @@ public class MyJ48 extends Classifier {
         double totalWeight;
 
         try{
-            distribution = new J48ClassDistribution(data);
+            distribution = new J48ClassDistribution(dataSet);
             notSplitable = new NotSplitable(distribution);
 
             /* if there are not enough instances for splitting */
@@ -107,6 +107,7 @@ public class MyJ48 extends Classifier {
             {
                 Attribute attribute = (Attribute) attributeEnumeration.nextElement();
                 splitables[attribute.index()] = new Splitable(attribute, minimalInstances, dataSet.sumOfWeights());
+                splitables[attribute.index()].buildClassifier(dataSet);
             }
         }
 
