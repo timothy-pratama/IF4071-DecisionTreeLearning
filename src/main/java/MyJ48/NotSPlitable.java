@@ -23,4 +23,16 @@ public class NotSplitable extends NodeType{
     public double[] getWeights(Instance instance) {
         return null;
     }
+
+    @Override
+    public final String leftSide(Instances instances){
+
+        return "";
+    }
+
+    @Override
+    public final String rightSide(int index, Instances instances){
+
+        return "";
+    }
 }

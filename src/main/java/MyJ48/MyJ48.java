@@ -3,8 +3,10 @@ package MyJ48;
 import Util.Util;
 import org.w3c.dom.Attr;
 import weka.classifiers.Classifier;
+import weka.classifiers.trees.J48;
 import weka.core.*;
 
+import javax.xml.soap.Node;
 import java.util.Enumeration;
 
 /**
@@ -129,7 +131,6 @@ public class MyJ48 extends Classifier {
             /* The node is splitable */
 
             splitables = new Splitable[dataSet.numAttributes()];
-            totalWeight = dataSet.sumOfWeights();
 
             Enumeration attributeEnumeration = dataSet.enumerateAttributes();
             while(attributeEnumeration.hasMoreElements())
@@ -137,6 +138,9 @@ public class MyJ48 extends Classifier {
                 Attribute attribute = (Attribute) attributeEnumeration.nextElement();
                 splitables[attribute.index()] = new Splitable(attribute, minimalInstances, dataSet.sumOfWeights());
                 splitables[attribute.index()].buildClassifier(dataSet);
+                System.out.println("\n====Attribute: " + attribute.name());
+                System.out.println("====Info Gain: " + splitables[attribute.index()].infoGain);
+                System.out.println("====Gain Ratio: " + splitables[attribute.index()].gainRatio);
                 if(splitables[attribute.index()].validateNode())
                 {
                     if(dataSet != null)
@@ -222,14 +226,77 @@ public class MyJ48 extends Classifier {
         return result;
     }
 
-    @Override
     public String toString() {
-        return super.toString();
+
+        try {
+            StringBuffer text = new StringBuffer();
+
+            if (is_leaf) {
+                text.append(": ");
+                text.append(nodeType.dumpLabel(0, dataSet));
+            }else
+                dumpTree(0,text);
+            text.append("\n\nNumber of Leaves  : \t"+(numLeaves())+"\n");
+            text.append("\nSize of the tree : \t"+numNodes()+"\n");
+
+            return text.toString();
+        } catch (Exception e) {
+            return "Can't print classification tree.";
+        }
+    }
+
+    public int numLeaves() {
+
+        int num = 0;
+        int i;
+
+        if (is_leaf)
+            return 1;
+        else
+            for (i=0;i<childs.length;i++)
+                num = num+childs[i].numLeaves();
+
+        return num;
+    }
+
+    public int numNodes() {
+
+        int no = 1;
+        int i;
+
+        if (!is_leaf)
+            for (i=0;i<childs.length;i++)
+                no = no+childs[i].numNodes();
+
+        return no;
+    }
+
+    private void dumpTree(int depth, StringBuffer text)
+            throws Exception {
+
+        int i,j;
+
+        for (i=0;i<childs.length;i++) {
+            text.append("\n");;
+            for (j=0;j<depth;j++)
+                text.append("|   ");
+            text.append(nodeType.leftSide(dataSet));
+            text.append(nodeType.rightSide(i, dataSet));
+            if (childs[i].is_leaf) {
+                text.append(": ");
+                text.append(nodeType.dumpLabel(i, dataSet));
+            }else
+                childs[i].dumpTree(depth+1,text);
+        }
     }
 
     public static void main (String [] args) throws Exception {
-        Classifier classifier = new MyJ48();
-        Instances dataSet = Util.readARFF("weather.numeric.arff");
-        classifier.buildClassifier(dataSet);
+        Classifier myJ48 = new MyJ48();
+        myJ48.buildClassifier(Util.readARFF("weather.nominal.arff"));
+        System.out.println(myJ48);
+
+        Classifier j48 = new J48();
+        j48.buildClassifier(Util.readARFF("weather.nominal.arff"));
+        System.out.println(j48.toString());
     }
 }

@@ -150,7 +150,6 @@ public class J48ClassDistribution {
         double unknownRate = 0;
 
         initialEntropy = calculateInitialEntropy();
-//        System.out.printf("=====Initial entropy: %f\n", initialEntropy);
 
         for (int i=0; i<numSubDatasets(); i++)
         {
@@ -167,15 +166,9 @@ public class J48ClassDistribution {
             finalEntropy = finalEntropy * -1;
             initialEntropy = initialEntropy - (weightPerSubDataset[i]/weightTotal*finalEntropy);
         }
-//        System.out.println("=====Information Gain: " + initialEntropy);
 
         unknownValues = instancesTotalWeight-weightTotal;
-        unknownRate = unknownRate/instancesTotalWeight;
-
-//        System.out.println("=====Unknown Values: " + unknownValues);
-//        System.out.println("=====Unknown Rate: " + unknownRate);
-//        System.out.println("=====Information Gain Final: " + (1-unknownRate)*initialEntropy);
-
+        unknownRate = unknownValues/instancesTotalWeight;
         return ((1-unknownRate)*initialEntropy);
     }
 
@@ -184,24 +177,8 @@ public class J48ClassDistribution {
      * @param infoGain
      * @return
      */
-    public double calculateGainRatio(double infoGain) {
-
-        /* splitInformation = -(p1 * log2 p1 + p2 * log2 p2 + ...) */
-        double splitInformation = 0;
-        for(int i=0; i<numSubDatasets(); i++)
-        {
-            double p = weightPerSubDataset[i]/weightTotal;
-            splitInformation = splitInformation + (p * log2(p));
-        }
-        splitInformation = splitInformation * -1;
-        if(Utils.eq(splitInformation,0))
-        {
-            return 0;
-        }
-        else
-        {
-            return infoGain / splitInformation;
-        }
+    public double calculateGainRatio(double infoGain , double instancesTotalWeight) {
+        return infoGain;
     }
 
     private double log2(double a) {
@@ -231,13 +208,13 @@ public class J48ClassDistribution {
 
         for(int i=startIndex; i<lastIndex; i++)
         {
-            data = (Instance) dataSet.instance(i);
+            data = dataSet.instance(i);
             classIndex = (int) data.classValue();
             weight = data.weight();
             weightClassPerSubdataset[src][classIndex] = weightClassPerSubdataset[src][classIndex] - weight;
             weightClassPerSubdataset[des][classIndex] = weightClassPerSubdataset[des][classIndex] + weight;
             weightPerSubDataset[src] = weightPerSubDataset[src] - weight;
-            weightPerSubDataset[des] = weightPerSubDataset[src] + weight;
+            weightPerSubDataset[des] = weightPerSubDataset[des] + weight;
         }
     }
 
@@ -281,11 +258,13 @@ public class J48ClassDistribution {
         }
         System.out.println();
 
-        System.out.println("===== WeightClassPerSubdataset:");
+        System.out.println("=====WeightClassPerSubdataset:");
         for(int i=0; i<numSubDatasets(); i++)
         {
             System.out.printf("Dataset[%d]: %f %f\n",i,weightClassPerSubdataset[i][0], weightClassPerSubdataset[i][1]);
         }
+
+        System.out.println("=====Total Weight: " + weightTotal);
     }
 
     public void addInstanceWithMissingValue(Instances dataset, Attribute attribute) {
@@ -325,5 +304,46 @@ public class J48ClassDistribution {
                 }
             }
         }
+    }
+
+    public double numIncorrect(int index) {
+        return weightPerSubDataset[index]-numCorrect(index);
+    }
+
+    public final double numCorrect(int index) {
+
+        return weightClassPerSubdataset[index][maxClass(index)];
+    }
+
+    public final int maxClass(int index) {
+
+        double maxCount = 0;
+        int maxIndex = 0;
+        int i;
+
+        if (Utils.gr(weightPerSubDataset[index],0)) {
+            for (i=0;i<weightPerClass.length;i++)
+                if (Utils.gr(weightClassPerSubdataset[index][i],maxCount)) {
+                    maxCount = weightClassPerSubdataset[index][i];
+                    maxIndex = i;
+                }
+            return maxIndex;
+        }else
+            return maxClass();
+    }
+
+    public final int maxClass() {
+
+        double maxCount = 0;
+        int maxIndex = 0;
+        int i;
+
+        for (i=0;i<weightPerClass.length;i++)
+            if (Utils.gr(weightPerClass[i],maxCount)) {
+                maxCount = weightPerClass[i];
+                maxIndex = i;
+            }
+
+        return maxIndex;
     }
 }

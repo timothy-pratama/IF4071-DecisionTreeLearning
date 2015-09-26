@@ -69,4 +69,28 @@ public class NodeType {
 
         return subDataset;
     }
+
+    public final String dumpLabel(int index,Instances data) throws Exception {
+
+        StringBuffer text;
+
+        text = new StringBuffer();
+        text.append(((Instances)data).classAttribute().
+                value(classDistribution.maxClass(index)));
+        text.append(" ("+Utils.roundDouble(classDistribution.weightPerSubDataset[index],2));
+        if (Utils.gr(classDistribution.numIncorrect(index),0))
+            text.append("/"+Utils.roundDouble(classDistribution.numIncorrect(index),2));
+        text.append(")");
+
+        return text.toString();
+    }
+
+    public String leftSide(Instances data)
+    {
+        return null;
+    }
+    public String rightSide(int index,Instances data)
+    {
+        return null;
+    }
 }

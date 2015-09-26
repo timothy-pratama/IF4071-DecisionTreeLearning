@@ -65,8 +65,6 @@ public class Splitable extends NodeType{
 
     public void buildClassifier(Instances dataset)
     {
-//        System.out.println("=====Datasets: \n" + dataset);
-        System.out.println("\n=====Current Attributes: " + splitAttribute.toString());
         this.dataset = dataset;
         numOfSubsets = 0;
         splitPointValue = Double.MAX_VALUE;
@@ -76,14 +74,13 @@ public class Splitable extends NodeType{
 
         if(splitAttribute.isNominal())
         {
-            System.out.println("=====Nominal Attribute!");
+//            System.out.println("=====Nominal Attribute!");
             numberOfBranch = splitAttribute.numValues();
             numberOfSplitPoints = splitAttribute.numValues();
             processNominalAttribute();
         }
         else // attribute == numeric
         {
-            System.out.println("=====Numeric Attributes!");
             numberOfBranch = 2;
             numberOfSplitPoints = 0;
             dataset.sort(splitAttribute);
@@ -106,12 +103,9 @@ public class Splitable extends NodeType{
 
         if(classDistribution.isSplitable(minimalInstances))
         {
-            System.out.println("=====Splitable!");
             numOfSubsets = numberOfBranch;
             infoGain = classDistribution.calculateInfoGain(totalWeight);
-            System.out.println("=====Information Gain: " + infoGain);
-            gainRatio = classDistribution.calculateGainRatio(infoGain);
-            System.out.println("=====Gain Ratio: " + gainRatio);
+            gainRatio = classDistribution.calculateGainRatio(infoGain, totalWeight);
         }
     }
 
@@ -122,7 +116,6 @@ public class Splitable extends NodeType{
         int last = 0;
         int splitIndex = -1;
         double currentInfoGain;
-        double initEntropy;
         double subsetMinInstances;
         Instance instance;
         int i;
@@ -172,7 +165,7 @@ public class Splitable extends NodeType{
                    Utils.grOrEq(classDistribution.weightPerSubDataset[1],subsetMinInstances))
                 {
                     currentInfoGain = classDistribution.calculateInfoGain(totalWeight);
-                    if(Utils.gr(currentInfoGain, infoGain))
+                    if(Utils.grOrEq(currentInfoGain, infoGain))
                     {
                         infoGain = currentInfoGain;
                         splitIndex = next-1;
@@ -202,7 +195,7 @@ public class Splitable extends NodeType{
                 classDistribution.addRange(0, dataset, 0, splitIndex+1);
                 classDistribution.addRange(1, dataset, splitIndex+1, numInstances);
 
-                gainRatio = classDistribution.calculateGainRatio(infoGain);
+                gainRatio = classDistribution.calculateGainRatio(infoGain, totalWeight);
             }
         }
     }
@@ -294,5 +287,29 @@ public class Splitable extends NodeType{
         {
             return null;
         }
+    }
+
+    @Override
+    public final String leftSide(Instances data) {
+
+        return splitAttribute.name();
+    }
+
+    public final String rightSide(int index,Instances data) {
+
+        StringBuffer text;
+
+        text = new StringBuffer();
+        if (splitAttribute.isNominal())
+            text.append(" = "+
+                    splitAttribute.value(index));
+        else
+        if (index == 0)
+            text.append(" <= "+
+                    Utils.doubleToString(splitPointValue,6));
+        else
+            text.append(" > "+
+                    Utils.doubleToString(splitPointValue,6));
+        return text.toString();
     }
 }
