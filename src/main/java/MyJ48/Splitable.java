@@ -123,7 +123,7 @@ public class Splitable extends NodeType{
         int splitIndex = -1;
         double currentInfoGain;
         double initEntropy;
-        double numSubsetInstances;
+        double subsetMinInstances;
         Instance instance;
         int i;
 
@@ -143,35 +143,78 @@ public class Splitable extends NodeType{
         numInstances = i;
 
         // compute the minimal instances in each subset
-        numSubsetInstances = 0.1*(classDistribution.getTotalWeight() / (double) classDistribution.numClasses());
-        if(Utils.smOrEq(numSubsetInstances, minimalInstances))
+        subsetMinInstances = 0.1*(classDistribution.getTotalWeight() / (double) classDistribution.numClasses());
+        if(Utils.smOrEq(subsetMinInstances, minimalInstances))
         {
-            numSubsetInstances = minimalInstances;
+            subsetMinInstances = minimalInstances;
         }
         else
         {
-            if(Utils.gr(numSubsetInstances,25))
+            if(Utils.gr(subsetMinInstances,25))
             {
-                numSubsetInstances = 25;
+                subsetMinInstances = 25;
             }
         }
 
         /* Check if there are enough instances for splitting */
-        if(Utils.sm(numInstances, numSubsetInstances*2))
+        if(Utils.sm(numInstances, subsetMinInstances*2))
         {
             return;
         }
-
-        initEntropy = classDistribution.computeInitialEntropy();
-        System.out.println(dataset.toString());
 
         // find all possible split points!
         while(next < numInstances)
         {
             if(dataset.instance(next-1).value(splitAttribute) + 0.00001 < dataset.instance(next).value(splitAttribute))
             {
-
+                classDistribution.moveInstance(1,0,dataset,last,next);
+                if(Utils.grOrEq(classDistribution.weightPerSubDataset[0],subsetMinInstances) &&
+                   Utils.grOrEq(classDistribution.weightPerSubDataset[1],subsetMinInstances))
+                {
+                    currentInfoGain = classDistribution.calculateInfoGain(totalWeight);
+                    if(Utils.gr(currentInfoGain, infoGain))
+                    {
+                        infoGain = currentInfoGain;
+                        splitIndex = next-1;
+                    }
+                    numberOfSplitPoints++;
+                }
+                last = next;
             }
+            next++;
+        }
+
+        if(numberOfSplitPoints > 0)
+        {
+            infoGain = infoGain - (log2(numberOfSplitPoints / totalWeight));
+            if(Utils.gr(infoGain,0))
+            {
+                numOfSubsets = 2;
+                splitPointValue = (dataset.instance(splitIndex+1).value(splitAttribute) +
+                                   dataset.instance(splitIndex).value(splitAttribute))/2;
+
+                if(splitPointValue == dataset.instance(splitIndex + 1).value(splitAttribute))
+                {
+                    splitPointValue = dataset.instance(splitIndex).value(splitAttribute);
+                }
+
+                classDistribution = new J48ClassDistribution(2, dataset.numClasses());
+                classDistribution.addRange(0, dataset, 0, splitIndex+1);
+                classDistribution.addRange(1, dataset, splitIndex+1, numInstances);
+
+                gainRatio = classDistribution.calculateGainRatio(infoGain);
+            }
+        }
+    }
+
+    private double log2(double a) {
+        if(a != 0)
+        {
+            return Math.log(a) / Math.log(2);
+        }
+        else
+        {
+            return 0;
         }
     }
 }

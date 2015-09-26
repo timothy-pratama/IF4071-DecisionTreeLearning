@@ -123,7 +123,7 @@ public class J48ClassDistribution {
         return (counter > 1);
     }
 
-    public double computeInitialEntropy()
+    private double calculateInitialEntropy()
     {
         double initEntropy = 0;
         for(int i=0; i<numClasses(); i++)
@@ -135,6 +135,11 @@ public class J48ClassDistribution {
         return initEntropy;
     }
 
+    /**
+     * Calculate the information gain
+     * @param instancesTotalWeight
+     * @return
+     */
     public double calculateInfoGain(double instancesTotalWeight)
     {
         /* initial entropy */
@@ -143,7 +148,7 @@ public class J48ClassDistribution {
         double unknownValues = 0;
         double unknownRate = 0;
 
-        initialEntropy = computeInitialEntropy();
+        initialEntropy = calculateInitialEntropy();
 //        System.out.printf("=====Initial entropy: %f\n", initialEntropy);
 
         for (int i=0; i<numSubDatasets(); i++)
@@ -173,6 +178,11 @@ public class J48ClassDistribution {
         return ((1-unknownRate)*initialEntropy);
     }
 
+    /**
+     * Calculate the gain ratio
+     * @param infoGain
+     * @return
+     */
     public double calculateGainRatio(double infoGain) {
 
         /* splitInformation = -(p1 * log2 p1 + p2 * log2 p2 + ...) */
@@ -202,6 +212,57 @@ public class J48ClassDistribution {
         {
             return 0;
         }
+    }
+
+    /**
+     * Move instance from 1 subdataset to other subdataset
+     * @param src
+     * @param des
+     * @param dataSet
+     * @param startIndex
+     * @param lastIndex
+     */
+    public void moveInstance(int src, int des, Instances dataSet, int startIndex, int lastIndex)
+    {
+        int classIndex;
+        double weight;
+        Instance data;
+
+        for(int i=startIndex; i<lastIndex; i++)
+        {
+            data = (Instance) dataSet.instance(i);
+            classIndex = (int) data.classValue();
+            weight = data.weight();
+            weightClassPerSubdataset[src][classIndex] = weightClassPerSubdataset[src][classIndex] - weight;
+            weightClassPerSubdataset[des][classIndex] = weightClassPerSubdataset[des][classIndex] + weight;
+            weightPerSubDataset[src] = weightPerSubDataset[src] - weight;
+            weightPerSubDataset[des] = weightPerSubDataset[src] + weight;
+        }
+    }
+
+    /**
+     * Add more than 1 instance to a subdataset
+     * @param subDatasetIndex
+     * @param dataSet
+     * @param startIndex
+     * @param lastIndex
+     */
+    public void addRange(int subDatasetIndex, Instances dataSet, int startIndex, int lastIndex)
+    {
+        double totalWeight = 0;
+        int classIndex;
+        Instance instance;
+
+        for(int i=startIndex; i<lastIndex; i++)
+        {
+            instance = dataSet.instance(i);
+            classIndex = (int) instance.classValue();
+            totalWeight = totalWeight + instance.weight();
+            weightClassPerSubdataset[subDatasetIndex][classIndex] += instance.weight();
+            weightPerClass[classIndex] += instance.weight();
+        }
+        weightPerSubDataset[subDatasetIndex] += totalWeight;
+        weightTotal += totalWeight;
     }
 
     public void print() {
