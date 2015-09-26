@@ -4,7 +4,6 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Utils;
 
-import java.util.Arrays;
 import java.util.Enumeration;
 
 /**
@@ -39,7 +38,7 @@ public class J48ClassDistribution {
         while(instancesEnumeration.hasMoreElements())
         {
             Instance i = (Instance) instancesEnumeration.nextElement();
-            addInstanceToDataset(0, i);
+            addInstance(0, i);
         }
     }
 
@@ -74,16 +73,25 @@ public class J48ClassDistribution {
      * return the number of subdataset in this distribution
      * @return
      */
-    private int numSubDatasets()
+    public int numSubDatasets()
     {
         return weightPerSubDataset.length;
+    }
+
+    /**
+     * Return the total weight of the class distribution
+     * @return
+     */
+    public double getTotalWeight()
+    {
+        return weightTotal;
     }
 
     /**
      * return the number of class in this distribution
      * @return
      */
-    private int numClasses()
+    public int numClasses()
     {
         return weightPerClass.length;
     }
@@ -93,7 +101,7 @@ public class J48ClassDistribution {
      * @param subDatasetIndex
      * @param instance
      */
-    public void addInstanceToDataset(int subDatasetIndex, Instance instance)
+    public void addInstance(int subDatasetIndex, Instance instance)
     {
         int classIndex = (int) instance.classValue();
         weightClassPerSubdataset[subDatasetIndex][classIndex] = weightClassPerSubdataset[subDatasetIndex][classIndex] + instance.weight();
@@ -115,6 +123,18 @@ public class J48ClassDistribution {
         return (counter > 1);
     }
 
+    public double computeInitialEntropy()
+    {
+        double initEntropy = 0;
+        for(int i=0; i<numClasses(); i++)
+        {
+            double p = weightPerClass[i]/weightTotal;
+            initEntropy = initEntropy + (p * log2(p));
+        }
+        initEntropy = initEntropy * -1;
+        return initEntropy;
+    }
+
     public double calculateInfoGain(double instancesTotalWeight)
     {
         /* initial entropy */
@@ -123,12 +143,7 @@ public class J48ClassDistribution {
         double unknownValues = 0;
         double unknownRate = 0;
 
-        for(int i=0; i<numClasses(); i++)
-        {
-            double p = weightPerClass[i]/weightTotal;
-            initialEntropy = initialEntropy + (p * log2(p));
-        }
-        initialEntropy = initialEntropy * -1;
+        initialEntropy = computeInitialEntropy();
 //        System.out.printf("=====Initial entropy: %f\n", initialEntropy);
 
         for (int i=0; i<numSubDatasets(); i++)

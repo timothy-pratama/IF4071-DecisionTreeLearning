@@ -3,6 +3,7 @@ package MyJ48;
 import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.Utils;
 
 import java.util.Enumeration;
 
@@ -55,11 +56,6 @@ public class Splitable extends NodeType{
      */
     public int numberOfSplitPoints;
 
-    /**
-     * This node class distribution
-     */
-    public J48ClassDistribution classDistribution;
-
     public Splitable(Attribute splitAttribute, double minimalInstances, double totalWeight)
     {
         this.splitAttribute = splitAttribute;
@@ -104,7 +100,7 @@ public class Splitable extends NodeType{
             Instance instance = (Instance) instanceEnumeration.nextElement();
             if(!instance.isMissing(splitAttribute))
             {
-                classDistribution.addInstanceToDataset((int) instance.value(splitAttribute), instance);
+                classDistribution.addInstance((int) instance.value(splitAttribute), instance);
             }
         }
 
@@ -121,6 +117,61 @@ public class Splitable extends NodeType{
 
     private void processNumericAttribute()
     {
+        int numInstances;
+        int next = 1;
+        int last = 0;
+        int splitIndex = -1;
+        double currentInfoGain;
+        double initEntropy;
+        double numSubsetInstances;
+        Instance instance;
+        int i;
 
+        classDistribution = new J48ClassDistribution(2, dataset.numClasses());
+        Enumeration instancesEnumeration = dataset.enumerateInstances();
+        i=0;
+        while(instancesEnumeration.hasMoreElements())
+        {
+            instance = (Instance) instancesEnumeration.nextElement();
+            if(!instance.isMissing(splitAttribute))
+            {
+                classDistribution.addInstance(1, instance);
+                i++;
+            }
+        }
+
+        numInstances = i;
+
+        // compute the minimal instances in each subset
+        numSubsetInstances = 0.1*(classDistribution.getTotalWeight() / (double) classDistribution.numClasses());
+        if(Utils.smOrEq(numSubsetInstances, minimalInstances))
+        {
+            numSubsetInstances = minimalInstances;
+        }
+        else
+        {
+            if(Utils.gr(numSubsetInstances,25))
+            {
+                numSubsetInstances = 25;
+            }
+        }
+
+        /* Check if there are enough instances for splitting */
+        if(Utils.sm(numInstances, numSubsetInstances*2))
+        {
+            return;
+        }
+
+        initEntropy = classDistribution.computeInitialEntropy();
+        System.out.println(dataset.toString());
+
+        // find all possible split points!
+        while(next < numInstances)
+        {
+            if(dataset.instance(next-1).value(splitAttribute) + 0.00001 < dataset.instance(next).value(splitAttribute))
+            {
+
+            }
+        }
     }
 }

@@ -156,7 +156,7 @@ public class MyJ48 extends Classifier {
 
     public static void main (String [] args) throws Exception {
         Classifier classifier = new MyJ48();
-        Instances dataSet = Util.readARFF("weather.nominal.arff");
+        Instances dataSet = Util.readARFF("weather.numeric.arff");
         classifier.buildClassifier(dataSet);
     }
 }
