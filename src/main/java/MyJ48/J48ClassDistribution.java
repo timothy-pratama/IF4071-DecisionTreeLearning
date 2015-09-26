@@ -2,7 +2,9 @@ package MyJ48;
 
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.Utils;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 
 /**
@@ -66,13 +68,6 @@ public class J48ClassDistribution {
         weightClassPerSubdataset = new double[(int) numberOfBranch][numberOfClass];
         weightPerSubDataset = new double[(int) numberOfBranch];
         weightPerClass = new double[numberOfClass];
-        for(int i=0; i<numberOfBranch; i++)
-        {
-            for(int j=0; j<numberOfClass; j++)
-            {
-                weightClassPerSubdataset[i][j]=4.0;
-            }
-        }
     }
 
     /**
@@ -105,5 +100,90 @@ public class J48ClassDistribution {
         weightPerSubDataset[subDatasetIndex] = weightPerSubDataset[subDatasetIndex] + instance.weight();
         weightPerClass[classIndex] = weightPerClass[classIndex] +  instance.weight();
         weightTotal = weightTotal + instance.weight();
+    }
+
+    public boolean isSplitable(double minimalInstances)
+    {
+        int counter = 0;
+        for(int i=0; i<weightPerSubDataset.length; i++)
+        {
+            if(Utils.grOrEq(weightPerSubDataset[i], minimalInstances))
+            {
+                counter ++;
+            }
+        }
+        return (counter > 1);
+    }
+
+    public double calculateInfoGain(double instancesTotalWeight)
+    {
+        /* initial entropy */
+        /* entropy = -(p1 * log2 p1 + p2 * log2 p2 + ...) */
+        double initialEntropy = 0;
+        double unknownValues = 0;
+        double unknownRate = 0;
+
+        for(int i=0; i<numClasses(); i++)
+        {
+            double p = weightPerClass[i]/weightTotal;
+            initialEntropy = initialEntropy + (p * log2(p));
+        }
+        initialEntropy = initialEntropy * -1;
+        System.out.printf("=====Initial entropy: %f\n", initialEntropy);
+
+        for (int i=0; i<numSubDatasets(); i++)
+        {
+            double finalEntropy = 0;
+            for(int j=0; j<numClasses(); j++)
+            {
+                double p = weightClassPerSubdataset[i][j]/weightPerSubDataset[i];
+                finalEntropy = finalEntropy + (p * log2(p));
+            }
+            finalEntropy = finalEntropy * -1;
+            initialEntropy = initialEntropy - (weightPerSubDataset[i]/weightTotal*finalEntropy);
+        }
+        System.out.println("=====Information Gain: " + initialEntropy);
+
+        unknownValues = instancesTotalWeight-weightTotal;
+        unknownRate = unknownRate/instancesTotalWeight;
+
+        System.out.println("=====Unknown Values: " + unknownValues);
+        System.out.println("=====Unknown Rate: " + unknownRate);
+        System.out.println("=====Information Gain Final: " + (1-unknownRate)*initialEntropy);
+
+        return ((1-unknownRate)*initialEntropy);
+    }
+
+    private double log2(double a) {
+        if(a != 0)
+        {
+            return Math.log(a) / Math.log(2);
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public void print() {
+        System.out.print("=====Weight per subdataset: ");
+        for(double d : weightPerSubDataset)
+        {
+            System.out.print(d + " ");
+        }
+        System.out.println();
+
+        System.out.print("=====Weight per class: ");
+        for(double d : weightPerClass)
+        {
+            System.out.print(d + " ");
+        }
+        System.out.println();
+
+        System.out.println("===== WeightClassPerSubdataset:");
+        for(int i=0; i<numSubDatasets(); i++)
+        {
+                System.out.printf("Dataset[%d]: %f %f\n",i,weightClassPerSubdataset[i][0], weightClassPerSubdataset[i][1]);
+        }
     }
 }

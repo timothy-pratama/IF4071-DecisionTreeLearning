@@ -48,12 +48,12 @@ public class Splitable extends NodeType{
     /**
      * Number of branches created from this node
      */
-    public double numberOfBranch;
+    public int numberOfBranch;
 
     /**
      * Number of posible splits
      */
-    public double numberOfSplitPoints;
+    public int numberOfSplitPoints;
 
     /**
      * This node class distribution
@@ -69,6 +69,8 @@ public class Splitable extends NodeType{
 
     public void buildClassifier(Instances dataset)
     {
+//        System.out.println("=====Datasets: \n" + dataset);
+        System.out.println("\n=====Current Attributes: " + splitAttribute.toString());
         this.dataset = dataset;
         numOfSubsets = 0;
         splitPointValue = Double.MAX_VALUE;
@@ -78,12 +80,14 @@ public class Splitable extends NodeType{
 
         if(splitAttribute.isNominal())
         {
+            System.out.println("=====Nominal Attribute!");
             numberOfBranch = splitAttribute.numValues();
             numberOfSplitPoints = splitAttribute.numValues();
             processNominalAttribute();
         }
         else // attribute == numeric
         {
+            System.out.println("=====Numeric Attributes!");
             numberOfBranch = 2;
             numberOfSplitPoints = 0;
             processNumericAttribute();
@@ -103,6 +107,13 @@ public class Splitable extends NodeType{
             }
         }
 
+        if(classDistribution.isSplitable(minimalInstances))
+        {
+            System.out.println("=====Splitable!");
+            numOfSubsets = numberOfBranch;
+            infoGain = classDistribution.calculateInfoGain(totalWeight);
+            ratioGain = 0;
+        }
     }
 
     private void processNumericAttribute()
