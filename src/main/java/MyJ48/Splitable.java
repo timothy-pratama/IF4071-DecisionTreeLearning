@@ -90,6 +90,7 @@ public class Splitable extends NodeType{
             System.out.println("=====Numeric Attributes!");
             numberOfBranch = 2;
             numberOfSplitPoints = 0;
+            dataset.sort(splitAttribute);
             processNumericAttribute();
         }
     }
