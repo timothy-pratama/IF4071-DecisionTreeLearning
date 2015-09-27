@@ -251,6 +251,12 @@ public class MyJ48 extends Classifier {
         }
     }
 
+    /**
+     * Get the probability of a class
+     * @param classIndex
+     * @param instance
+     * @return
+     */
     private double getProbs(int classIndex, Instance instance) {
         return getProbs(classIndex, instance, 1);
     }
@@ -290,7 +296,7 @@ public class MyJ48 extends Classifier {
                 text.append(": ");
                 text.append(nodeType.printLabel(0, dataSet));
             }else
-                dumpTree(0,text);
+                printTree(0, text);
             text.append("\n\nNumber of Leaves  : \t"+(numLeaves())+"\n");
             text.append("\nSize of the tree : \t"+numNodes()+"\n");
 
@@ -326,7 +332,13 @@ public class MyJ48 extends Classifier {
         return no;
     }
 
-    private void dumpTree(int depth, StringBuffer text)
+    /**
+     * Print the Tree
+     * @param depth
+     * @param text
+     * @throws Exception
+     */
+    private void printTree(int depth, StringBuffer text)
             throws Exception {
 
         int i,j;
@@ -341,12 +353,12 @@ public class MyJ48 extends Classifier {
                 text.append(": ");
                 text.append(nodeType.printLabel(i, dataSet));
             }else
-                childs[i].dumpTree(depth+1,text);
+                childs[i].printTree(depth + 1, text);
         }
     }
 
     public static void main (String [] args) throws Exception {
-        Instances trainingSet = Util.readARFF("iris.2D.arff");
+        Instances trainingSet = Util.readARFF("weather.numeric.arff");
 
         Evaluation MyJ48Evaluation = Util.crossValidationTest(trainingSet, new MyJ48());
         System.out.println(MyJ48Evaluation.toSummaryString("===== My J48 Result =====", false));

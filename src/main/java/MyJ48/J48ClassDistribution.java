@@ -12,16 +12,24 @@ import java.util.Enumeration;
  */
 public class J48ClassDistribution {
 
-    /* Weight of instances per subdataset per class. */
+    /**
+     * Weight each class per Subdataset
+     */
     public double weightClassPerSubdataset[][];
 
-    /* Weight of instances per subdataset */
+    /**
+     * Weight of each subdataset
+     */
     public double weightPerSubDataset[];
 
-    /* Weight of instances per class. */
+    /**
+     * Weight of each class
+     */
     public double weightPerClass[];
 
-    /* Total weight of instances. */
+    /**
+     * Weight of all instances in this distribution
+     */
     public double weightTotal;
 
     /**
@@ -111,6 +119,11 @@ public class J48ClassDistribution {
         weightTotal = weightTotal + instance.weight();
     }
 
+    /**
+     * Check whether this node has enough instances for splitting
+     * @param minimalInstances
+     * @return
+     */
     public boolean isSplitable(double minimalInstances)
     {
         int counter = 0;
@@ -124,6 +137,10 @@ public class J48ClassDistribution {
         return (counter > 1);
     }
 
+    /**
+     * compute the initial entropy
+     * @return
+     */
     private double calculateInitialEntropy()
     {
         double initEntropy = 0;
@@ -187,6 +204,11 @@ public class J48ClassDistribution {
         return infoGain / splitInformation;
     }
 
+    /**
+     * return the result of log2
+     * @param a
+     * @return
+     */
     private double log2(double a) {
         if(a != 0)
         {
@@ -249,6 +271,9 @@ public class J48ClassDistribution {
         weightTotal += totalWeight;
     }
 
+    /**
+     * Print this distribution for debugging
+     */
     public void print() {
         System.out.print("=====Weight per subdataset: ");
         for(double d : weightPerSubDataset)
@@ -273,6 +298,11 @@ public class J48ClassDistribution {
         System.out.println("=====Total Weight: " + weightTotal);
     }
 
+    /**
+     * Add instance with missing value using probability (weight)
+     * @param dataset
+     * @param attribute
+     */
     public void addInstanceWithMissingValue(Instances dataset, Attribute attribute) {
         double[] valueProbabilities;
         double weight, newWeight;
@@ -312,25 +342,41 @@ public class J48ClassDistribution {
         }
     }
 
-    public double numIncorrect(int index) {
-        return weightPerSubDataset[index]-numCorrect(index);
+    /**
+     * Return the number of incorrectly classified instance from dataSet
+     * @param subdatasetIndex
+     * @return
+     */
+    public double numIncorrect(int subdatasetIndex)
+    {
+        return weightPerSubDataset[subdatasetIndex]-numCorrect(subdatasetIndex);
     }
 
-    public final double numCorrect(int index) {
-
-        return weightClassPerSubdataset[index][maxClass(index)];
+    /**
+     * Return the number of correctly classified instances from subdataset
+     * @param subdatasetIndex
+     * @return
+     */
+    public final double numCorrect(int subdatasetIndex)
+    {
+        return weightClassPerSubdataset[subdatasetIndex][maxClass(subdatasetIndex)];
     }
 
-    public final int maxClass(int index) {
+    /**
+     * return the maximum class in the subdataset
+     * @param subdasetIndex
+     * @return
+     */
+    public final int maxClass(int subdasetIndex) {
 
         double maxCount = 0;
         int maxIndex = 0;
         int i;
 
-        if (Utils.gr(weightPerSubDataset[index],0)) {
+        if (Utils.gr(weightPerSubDataset[subdasetIndex],0)) {
             for (i=0;i<weightPerClass.length;i++)
-                if (Utils.gr(weightClassPerSubdataset[index][i],maxCount)) {
-                    maxCount = weightClassPerSubdataset[index][i];
+                if (Utils.gr(weightClassPerSubdataset[subdasetIndex][i],maxCount)) {
+                    maxCount = weightClassPerSubdataset[subdasetIndex][i];
                     maxIndex = i;
                 }
             return maxIndex;
@@ -338,6 +384,10 @@ public class J48ClassDistribution {
             return maxClass();
     }
 
+    /**
+     * return the maximum class in this distribution
+     * @return
+     */
     public final int maxClass() {
 
         double maxCount = 0;
@@ -353,6 +403,12 @@ public class J48ClassDistribution {
         return maxIndex;
     }
 
+    /**
+     * get the probability for a class in a subdataset
+     * @param classIndex
+     * @param subsetIndex
+     * @return
+     */
     public double prob(int classIndex, int subsetIndex) {
         if(Utils.gr(weightPerSubDataset[subsetIndex],0))
         {
@@ -364,6 +420,11 @@ public class J48ClassDistribution {
         }
     }
 
+    /**
+     * get the probability for a class
+     * @param classIndex
+     * @return
+     */
     public double prob(int classIndex) {
         if(!Utils.eq(weightTotal,0))
         {

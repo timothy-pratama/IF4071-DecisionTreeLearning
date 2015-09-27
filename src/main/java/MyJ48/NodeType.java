@@ -21,11 +21,21 @@ public class NodeType {
         return -1;
     }
 
+    /**
+     * get the weights for an instance
+     * @param instance
+     * @return
+     */
     public double [] getWeights(Instance instance)
     {
         return null;
     }
 
+    /**
+     * Split the dataset insto several subdataset based on attribute value
+     * @param dataSet
+     * @return
+     */
     public Instances[] split(Instances dataSet)
     {
         Instances [] subDataset = new Instances[numOfSubsets];
