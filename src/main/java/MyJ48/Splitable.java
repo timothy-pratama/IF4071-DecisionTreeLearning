@@ -105,7 +105,7 @@ public class Splitable extends NodeType{
         {
             numOfSubsets = numberOfBranch;
             infoGain = classDistribution.calculateInfoGain(totalWeight);
-            gainRatio = classDistribution.calculateGainRatio(infoGain, totalWeight);
+            gainRatio = classDistribution.calculateGainRatio(infoGain);
         }
     }
 
@@ -116,6 +116,7 @@ public class Splitable extends NodeType{
         int last = 0;
         int splitIndex = -1;
         double currentInfoGain;
+        double currentGainRatio;
         double subsetMinInstances;
         Instance instance;
         int i;
@@ -165,9 +166,11 @@ public class Splitable extends NodeType{
                    Utils.grOrEq(classDistribution.weightPerSubDataset[1],subsetMinInstances))
                 {
                     currentInfoGain = classDistribution.calculateInfoGain(totalWeight);
-                    if(Utils.grOrEq(currentInfoGain, infoGain))
+                    currentGainRatio = classDistribution.calculateGainRatio(currentInfoGain);
+                    if(Utils.grOrEq(currentGainRatio, gainRatio))
                     {
                         infoGain = currentInfoGain;
+                        gainRatio = currentGainRatio;
                         splitIndex = next-1;
                     }
                     numberOfSplitPoints++;
@@ -195,7 +198,7 @@ public class Splitable extends NodeType{
                 classDistribution.addRange(0, dataset, 0, splitIndex+1);
                 classDistribution.addRange(1, dataset, splitIndex+1, numInstances);
 
-                gainRatio = classDistribution.calculateGainRatio(infoGain, totalWeight);
+                gainRatio = classDistribution.calculateGainRatio(infoGain);
             }
         }
     }

@@ -1,12 +1,11 @@
 package MyJ48;
 
 import Util.Util;
-import org.w3c.dom.Attr;
 import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
 import weka.classifiers.trees.J48;
 import weka.core.*;
 
-import javax.xml.soap.Node;
 import java.util.Enumeration;
 
 /**
@@ -138,9 +137,10 @@ public class MyJ48 extends Classifier {
                 Attribute attribute = (Attribute) attributeEnumeration.nextElement();
                 splitables[attribute.index()] = new Splitable(attribute, minimalInstances, dataSet.sumOfWeights());
                 splitables[attribute.index()].buildClassifier(dataSet);
-                System.out.println("\n====Attribute: " + attribute.name());
+                System.out.println("====Attribute: " + attribute.name());
                 System.out.println("====Info Gain: " + splitables[attribute.index()].infoGain);
-                System.out.println("====Gain Ratio: " + splitables[attribute.index()].gainRatio);
+                System.out.println("====Gain Ratio:" + splitables[attribute.index()].gainRatio);
+                System.out.println();
                 if(splitables[attribute.index()].validateNode())
                 {
                     if(dataSet != null)
@@ -196,8 +196,63 @@ public class MyJ48 extends Classifier {
     }
 
     @Override
-    public double classifyInstance(Instance instance) throws Exception {
-        return super.classifyInstance(instance);
+    public double classifyInstance(Instance instance)
+            throws Exception {
+
+        double maxProbability = Double.MAX_VALUE * -1;
+        double currentProb;
+        int maxIndex = 0;
+        int j;
+
+        for (j = 0; j < instance.numClasses(); j++) {
+            currentProb = getProbs(j, instance);
+            if (Utils.gr(currentProb,maxProbability)) {
+                maxIndex = j;
+                maxProbability = currentProb;
+            }
+        }
+
+        return (double)maxIndex;
+    }
+
+    private double getProbs(int classIndex, Instance instance, double weight) {
+        double prob = 0;
+
+        if(is_leaf)
+        {
+            return weight * nodeType.classProb(classIndex, instance, -1);
+        }
+        else
+        {
+            int subsetIndex = nodeType.getSubsetIndex(instance);
+            if(subsetIndex == -1)
+            {
+                double[] weights = nodeType.getWeights(instance);
+                for(int i=0; i<childs.length; i++)
+                {
+                    if(!childs[i].is_empty)
+                    {
+                        prob += childs[i].getProbs(classIndex, instance, weights[i]*weight);
+                    }
+                }
+                return prob;
+            }
+            else
+            {
+                if(childs[subsetIndex].is_empty)
+                {
+                    return weight * nodeType.classProb(classIndex, instance, subsetIndex);
+                }
+                else
+                {
+                    return childs[subsetIndex].getProbs(classIndex,instance,weight);
+                }
+            }
+        }
+    }
+
+    private double getProbs(int classIndex, Instance instance) {
+        return getProbs(classIndex, instance, 1);
     }
 
     @Override
@@ -233,7 +288,7 @@ public class MyJ48 extends Classifier {
 
             if (is_leaf) {
                 text.append(": ");
-                text.append(nodeType.dumpLabel(0, dataSet));
+                text.append(nodeType.printLabel(0, dataSet));
             }else
                 dumpTree(0,text);
             text.append("\n\nNumber of Leaves  : \t"+(numLeaves())+"\n");
@@ -284,19 +339,19 @@ public class MyJ48 extends Classifier {
             text.append(nodeType.rightSide(i, dataSet));
             if (childs[i].is_leaf) {
                 text.append(": ");
-                text.append(nodeType.dumpLabel(i, dataSet));
+                text.append(nodeType.printLabel(i, dataSet));
             }else
                 childs[i].dumpTree(depth+1,text);
         }
     }
 
     public static void main (String [] args) throws Exception {
-        Classifier myJ48 = new MyJ48();
-        myJ48.buildClassifier(Util.readARFF("weather.nominal.arff"));
-        System.out.println(myJ48);
+        Instances trainingSet = Util.readARFF("iris.2D.arff");
 
-        Classifier j48 = new J48();
-        j48.buildClassifier(Util.readARFF("weather.nominal.arff"));
-        System.out.println(j48.toString());
+        Evaluation MyJ48Evaluation = Util.crossValidationTest(trainingSet, new MyJ48());
+        System.out.println(MyJ48Evaluation.toSummaryString("===== My J48 Result =====", false));
+
+        Evaluation j48Evaluation = Util.crossValidationTest(trainingSet, new J48());
+        System.out.println(j48Evaluation.toSummaryString("===== J48 Result =====", false));
     }
 }

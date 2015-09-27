@@ -10,7 +10,7 @@ public class NotSplitable extends NodeType{
 
     public NotSplitable(J48ClassDistribution distribution)
     {
-        distribution = new J48ClassDistribution(distribution);
+        classDistribution = new J48ClassDistribution(distribution);
         numOfSubsets = 1;
     }
 

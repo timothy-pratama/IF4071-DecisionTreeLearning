@@ -177,8 +177,14 @@ public class J48ClassDistribution {
      * @param infoGain
      * @return
      */
-    public double calculateGainRatio(double infoGain , double instancesTotalWeight) {
-        return infoGain;
+    public double calculateGainRatio(double infoGain) {
+        double splitInformation = 0;
+        for(int i=0; i<numSubDatasets(); i++)
+        {
+            double p = weightPerSubDataset[i]/weightTotal;
+            splitInformation = splitInformation - (p * log2(p));
+        }
+        return infoGain / splitInformation;
     }
 
     private double log2(double a) {
@@ -345,5 +351,27 @@ public class J48ClassDistribution {
             }
 
         return maxIndex;
+    }
+
+    public double prob(int classIndex, int subsetIndex) {
+        if(Utils.gr(weightPerSubDataset[subsetIndex],0))
+        {
+            return weightClassPerSubdataset[subsetIndex][classIndex]/weightPerSubDataset[subsetIndex];
+        }
+        else
+        {
+            return prob(classIndex);
+        }
+    }
+
+    public double prob(int classIndex) {
+        if(!Utils.eq(weightTotal,0))
+        {
+            return weightPerClass[classIndex]/weightTotal;
+        }
+        else
+        {
+            return 0;
+        }
     }
 }

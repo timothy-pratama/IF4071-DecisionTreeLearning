@@ -70,7 +70,7 @@ public class NodeType {
         return subDataset;
     }
 
-    public final String dumpLabel(int index,Instances data) throws Exception {
+    public final String printLabel(int index, Instances data) throws Exception {
 
         StringBuffer text;
 
@@ -92,5 +92,29 @@ public class NodeType {
     public String rightSide(int index,Instances data)
     {
         return null;
+    }
+
+    public double classProb(int classIndex, Instance instance, int subsetIndex) {
+        if(subsetIndex > -1)
+        {
+            return classDistribution.prob(classIndex, subsetIndex);
+        }
+        else
+        {
+            double [] weights = getWeights(instance);
+            if(weights == null)
+            {
+                return classDistribution.prob(classIndex);
+            }
+            else
+            {
+                double probability = 0;
+                for(int i=0; i<weights.length; i++)
+                {
+                    probability += weights[i] * classDistribution.prob(classIndex, i);
+                }
+                return probability;
+            }
+        }
     }
 }
