@@ -390,13 +390,13 @@ public class J48ClassDistribution {
      */
     public final int maxClass() {
 
-        double maxCount = 0;
+        double maxValue = 0;
         int maxIndex = 0;
         int i;
 
         for (i=0;i<weightPerClass.length;i++)
-            if (Utils.gr(weightPerClass[i],maxCount)) {
-                maxCount = weightPerClass[i];
+            if (Utils.gr(weightPerClass[i],maxValue)) {
+                maxValue = weightPerClass[i];
                 maxIndex = i;
             }
 
@@ -434,5 +434,13 @@ public class J48ClassDistribution {
         {
             return 0;
         }
+    }
+
+    public double numIncorrect() {
+        return weightTotal - numCorrect();
+    }
+
+    private double numCorrect() {
+        return weightPerClass[maxClass()];
     }
 }

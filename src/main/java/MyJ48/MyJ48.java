@@ -58,6 +58,11 @@ public class MyJ48 extends Classifier {
      */
     Instances [] subDataset;
 
+    /**
+     * Train the classifier using the given dataset
+     * @param instances dataset for training
+     * @throws Exception
+     */
     @Override
     public void buildClassifier(Instances instances) throws Exception {
         // Check if the data set is able to be proccessed using MyJ48.MyJ48
@@ -67,8 +72,152 @@ public class MyJ48 extends Classifier {
         data.deleteWithMissingClass();
 
         createTree(data);
+
+        //collapseTree();
+        pruneTree();
     }
 
+    private void pruneTree() {
+        int largestBranchIndex;
+        double largestBranchError;
+        double leafError;
+        double treeError;
+        MyJ48 largestBranch;
+
+        if(!is_leaf)
+        {
+            for(int i=0; i<childs.length; i++)
+            {
+                childs[i].pruneTree();
+            }
+
+            largestBranchIndex = Utils.maxIndex(nodeType.classDistribution.weightPerSubDataset);
+            largestBranchError = childs[largestBranchIndex].getBranchError(dataSet);
+            leafError = getDistributionError(nodeType.classDistribution);
+            treeError = getEstimatedError();
+
+            if(Utils.smOrEq(leafError, treeError+0.1) && Utils.smOrEq(leafError, largestBranchError+0.1))
+            {
+                childs = null;
+                is_leaf = true;
+                nodeType = new NotSplitable(nodeType.classDistribution);
+            }
+            else
+            {
+                if(Utils.smOrEq(largestBranchError, treeError + 0.1))
+                {
+                    largestBranch = childs[largestBranchIndex];
+                    childs = largestBranch.childs;
+                    nodeType = largestBranch.nodeType;
+                    is_leaf = largestBranch.is_leaf;
+                    createNewDistribution(dataSet);
+                    pruneTree();
+                }
+            }
+        }
+    }
+
+    private void createNewDistribution(Instances dataSet) {
+        Instances [] subDataset;
+        this.dataSet = dataSet;
+        nodeType.classDistribution = new J48ClassDistribution(dataSet);
+        if(!is_leaf)
+        {
+            subDataset = nodeType.split(dataSet);
+            for(int i=0; i<childs.length; i++)
+            {
+                childs[i].createNewDistribution(subDataset[i]);
+            }
+        }
+        else
+        {
+            if(!Utils.eq(0, dataSet.sumOfWeights()))
+            {
+                is_empty = false;
+            }
+        }
+    }
+
+    private double getEstimatedError() {
+        double error = 0;
+
+        if(is_leaf)
+        {
+            return getDistributionError(nodeType.classDistribution);
+        }
+        else
+        {
+            for (int i=0; i<childs.length; i++)
+            {
+                error = error + childs[i].getEstimatedError();
+            }
+            return error;
+        }
+    }
+
+    private double getBranchError(Instances dataSet) {
+        Instances [] subDataset;
+        double error = 0;
+
+        if(is_leaf)
+        {
+            return getDistributionError(new J48ClassDistribution(dataSet));
+        }
+        else
+        {
+            J48ClassDistribution tempClassDistribution = nodeType.classDistribution;
+            nodeType.classDistribution = new J48ClassDistribution(dataSet);
+            subDataset = nodeType.split(dataSet);
+            nodeType.classDistribution = tempClassDistribution;
+            for(int i=0; i<childs.length; i++)
+            {
+                error = error + childs[i].getBranchError(subDataset[i]);
+                return error;
+            }
+        }
+        return 0;
+    }
+
+    private double getDistributionError(J48ClassDistribution classDistribution) {
+        if(Utils.eq(0, classDistribution.getTotalWeight())) {
+            return 0;
+        }
+        else
+        {
+            return classDistribution.numIncorrect() + ErrorCalculator.calculateError(classDistribution.getTotalWeight(), classDistribution.numIncorrect(), confidenceLevel);
+        }
+    }
+
+    /**
+     * Reduce a tree into a node if the subtree error is greater than the tree error
+     */
+    public void collapseTree() {
+        double subtreeError;
+        double treeError;
+
+        if (!is_leaf) {
+            subtreeError = getError();
+            treeError = nodeType.classDistribution.numIncorrect();
+            if(Utils.grOrEq(subtreeError, treeError - 0.001))
+            {
+                childs = null;
+                is_leaf = true;
+            }
+            nodeType = new NotSplitable(nodeType.classDistribution);
+        }
+        else
+        {
+            for (int i=0; i<childs.length; i++)
+            {
+                childs[i].collapseTree();
+            }
+        }
+    }
+
+    /**
+     * Create the tree
+     * @param data
+     */
     private void createTree(Instances data)
     {
         dataSet = data;
@@ -137,10 +286,6 @@ public class MyJ48 extends Classifier {
                 Attribute attribute = (Attribute) attributeEnumeration.nextElement();
                 splitables[attribute.index()] = new Splitable(attribute, minimalInstances, dataSet.sumOfWeights());
                 splitables[attribute.index()].buildClassifier(dataSet);
-                System.out.println("====Attribute: " + attribute.name());
-                System.out.println("====Info Gain: " + splitables[attribute.index()].infoGain);
-                System.out.println("====Gain Ratio:" + splitables[attribute.index()].gainRatio);
-                System.out.println();
                 if(splitables[attribute.index()].validateNode())
                 {
                     if(dataSet != null)
@@ -357,13 +502,38 @@ public class MyJ48 extends Classifier {
         }
     }
 
-    public static void main (String [] args) throws Exception {
-        Instances trainingSet = Util.readARFF("weather.numeric.arff");
+    public double getError() {
+        if(is_leaf)
+        {
+            return nodeType.classDistribution.numIncorrect();
+        }
+        else
+        {
+            double error = 0;
+            for(int i=0; i<childs.length; i++)
+            {
+                error += childs[i].getError();
+            }
+            return error;
+        }
+    }
 
-        Evaluation MyJ48Evaluation = Util.crossValidationTest(trainingSet, new MyJ48());
+    public static void main (String [] args) throws Exception {
+        Instances dataSet = Util.readARFF("iris.arff");
+
+        Evaluation MyJ48Evaluation = Util.crossValidationTest(dataSet, new MyJ48());
         System.out.println(MyJ48Evaluation.toSummaryString("===== My J48 Result =====", false));
 
-        Evaluation j48Evaluation = Util.crossValidationTest(trainingSet, new J48());
+        Evaluation j48Evaluation = Util.crossValidationTest(dataSet, new J48());
         System.out.println(j48Evaluation.toSummaryString("===== J48 Result =====", false));
+
+        Classifier j48 = new J48();
+        Classifier myJ48 = new MyJ48();
+
+        j48.buildClassifier(dataSet);
+        myJ48.buildClassifier(dataSet);
+
+        System.out.println("\n===== MyJ48 Model =====\n" + myJ48.toString());
+        System.out.println("\n===== J48 Model =====\n" + j48.toString());
     }
 }
