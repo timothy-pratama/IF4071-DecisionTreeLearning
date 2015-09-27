@@ -80,8 +80,6 @@ public class MyId3 extends Classifier {
      */
     private void createTree(Instances dataSet, double mostCommonClassValue)
     {
-        log("Data Set", dataSet.toString());
-
         /* Several variables initialization */
         classAttribute = dataSet.classAttribute();
         classDistribution = new double[dataSet.numClasses()];
@@ -100,14 +98,11 @@ public class MyId3 extends Classifier {
             while(attributeEnumeration.hasMoreElements())
             {
                 Attribute attribute = (Attribute) attributeEnumeration.nextElement();
-                log("Attribute", attribute.toString());
                 double infoGain = computeInfoGain(dataSet, attribute);
                 infoGains[attribute.index()] = infoGain;
-//                System.out.println("==========Info Gain: " + infoGain);
             }
 
             splitAttribute = dataSet.attribute(Utils.maxIndex(infoGains));
-//            System.out.println("==========The Best Attribute for Splitting: " + splitAttribute.toString());
 
             //This node is a leaf, the data sets only have 1 class.
             if(Utils.eq(infoGains[splitAttribute.index()],0))
@@ -122,11 +117,9 @@ public class MyId3 extends Classifier {
                 Utils.normalize(classDistribution);
                 classValue = Utils.maxIndex(classDistribution);
 
-//                System.out.println("==========This node Class: " + dataSet.classAttribute().value((int) classValue));
             }
             else /* Split the data by attribute, make new tree */
             {
-//                System.out.println("==========Split data by attribute: " + splitAttribute.toString());
                 Instances[] subDataSet = splitDataByAttribute(dataSet, splitAttribute);
                 childs = new MyId3[splitAttribute.numValues()];
                 for(int i=0; i<splitAttribute.numValues(); i++)
@@ -150,14 +143,8 @@ public class MyId3 extends Classifier {
         /* Compute initial entropy */
 
         double initialEntropi = computeEntropy(dataSet);
-//        System.out.println("==========initial entropy: " + initialEntropi);
 
         Instances [] subDataSet = splitDataByAttribute(dataSet, attribute);
-//        System.out.println("==========Sub Data Set:");
-        for(Instances instances : subDataSet)
-        {
-//            System.out.println(instances.toString());
-        }
 
         double [] entropies = new double[attribute.numValues()];
         for(int i=0; i<attribute.numValues(); i++)
@@ -170,12 +157,6 @@ public class MyId3 extends Classifier {
             {
                 entropies[i] = 0;
             }
-        }
-
-//        System.out.println("==========entropies");
-        for(double d : entropies)
-        {
-//            System.out.println(d);
         }
 
         double infoGain = initialEntropi;
@@ -346,11 +327,6 @@ public class MyId3 extends Classifier {
         return super.getRevision();
     }
 
-    private void log(String logName, String logMessage)
-    {
-//        System.out.printf("===============[%s-Start]===============\n%s\n===============[%s-End]===============\n", logName, logMessage, logName);
-    }
-
     /**
      * Return the string representation for the current level
      * @param level Level that are going to be printed
@@ -401,18 +377,16 @@ public class MyId3 extends Classifier {
             myId3.buildClassifier(dataSet);
             System.out.println(myId3.toString());
 
-            System.out.println("\n==============================\n");
-
             Classifier id3 = new Id3();
             id3.buildClassifier(dataSet);
             System.out.println(id3.toString());
 
             Evaluation myId3Evaluation = Util.crossValidationTest(dataSet, new MyId3());
             Evaluation id3Evaluation = Util.crossValidationTest(dataSet, new Id3());
-            System.out.println("\n===== MyId3.MyId3 Cross Validation Result =====\n");
-            System.out.println(myId3Evaluation.toMatrixString());
+            System.out.println("\n===== MyId3 Cross Validation Result =====\n");
+            System.out.println(myId3Evaluation.toSummaryString());
             System.out.println("\n===== Id3 Cross Validation Result =====\n");
-            System.out.println(id3Evaluation.toMatrixString());
+            System.out.println(id3Evaluation.toSummaryString());
         }
         catch (Exception e)
         {

@@ -46,7 +46,7 @@ public class MyJ48 extends Classifier {
     /**
      * this attribute store the confidence level of the j48 tree
      */
-    private float confidenceLevel = 0.25f;
+    private float confidenceLevel = 0.1f;
 
     /**
      * This attribute store the type of this node whether it's splitable or not-splitable (leaf)
@@ -73,7 +73,7 @@ public class MyJ48 extends Classifier {
 
         createTree(data);
 
-        //collapseTree();
+        collapseTree();
         pruneTree();
     }
 
@@ -110,7 +110,7 @@ public class MyJ48 extends Classifier {
                     childs = largestBranch.childs;
                     nodeType = largestBranch.nodeType;
                     is_leaf = largestBranch.is_leaf;
-                    createNewDistribution(dataSet);
+//                    createNewDistribution(dataSet);
                     pruneTree();
                 }
             }
@@ -134,6 +134,10 @@ public class MyJ48 extends Classifier {
             if(!Utils.eq(0, dataSet.sumOfWeights()))
             {
                 is_empty = false;
+            }
+            else
+            {
+                is_empty = true;
             }
         }
     }
@@ -196,14 +200,14 @@ public class MyJ48 extends Classifier {
         double treeError;
 
         if (!is_leaf) {
-            subtreeError = getError();
+            subtreeError = getTrainingError();
             treeError = nodeType.classDistribution.numIncorrect();
-            if(Utils.grOrEq(subtreeError, treeError - 0.001))
+            if(subtreeError >= treeError-0.25)
             {
                 childs = null;
                 is_leaf = true;
+                nodeType = new NotSplitable(nodeType.classDistribution);
             }
-            nodeType = new NotSplitable(nodeType.classDistribution);
         }
         else
         {
@@ -502,7 +506,7 @@ public class MyJ48 extends Classifier {
         }
     }
 
-    public double getError() {
+    public double getTrainingError() {
         if(is_leaf)
         {
             return nodeType.classDistribution.numIncorrect();
@@ -512,14 +516,17 @@ public class MyJ48 extends Classifier {
             double error = 0;
             for(int i=0; i<childs.length; i++)
             {
-                error += childs[i].getError();
+                error += childs[i].getTrainingError();
             }
             return error;
         }
     }
 
     public static void main (String [] args) throws Exception {
-        Instances dataSet = Util.readARFF("iris.arff");
+        Instances dataSet = Util.readARFF("weather.nominal.arff");
+//        Instances dataSet = Util.readARFF("weather.numeric.arff");
+//        Instances dataSet = Util.readARFF("iris.arff");
+//        Instances dataSet = Util.readARFF("iris.2D.arff");
 
         Evaluation MyJ48Evaluation = Util.crossValidationTest(dataSet, new MyJ48());
         System.out.println(MyJ48Evaluation.toSummaryString("===== My J48 Result =====", false));
