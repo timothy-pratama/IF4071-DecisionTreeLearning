@@ -7,17 +7,17 @@
 @attribute play {yes, no}
 
 @data
-sunny,hot,high,FALSE,no
+sunny,?,high,FALSE,no
 sunny,hot,high,TRUE,no
-overcast,hot,high,FALSE,yes
+?,hot,high,FALSE,yes
 rainy,mild,high,FALSE,yes
-rainy,cool,normal,FALSE,yes
-rainy,cool,normal,TRUE,no
+rainy,?,normal,FALSE,yes
+rainy,cool,?,TRUE,no
 overcast,cool,normal,TRUE,yes
 sunny,mild,high,FALSE,no
-sunny,cool,normal,FALSE,yes
+sunny,cool,normal,?,yes
 rainy,mild,normal,FALSE,yes
-sunny,mild,normal,TRUE,yes
+sunny,?,normal,TRUE,yes
 overcast,mild,high,TRUE,yes
-overcast,hot,normal,FALSE,yes
-rainy,mild,high,TRUE,no
+overcast,hot,normal,?,yes
+?,mild,high,TRUE,no

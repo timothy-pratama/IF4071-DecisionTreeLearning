@@ -527,7 +527,10 @@ public class MyJ48 extends Classifier {
 //        Instances dataSet = Util.readARFF("weather.numeric.arff");
 //        Instances dataSet = Util.readARFF("iris.arff");
 //        Instances dataSet = Util.readARFF("iris.2D.arff");
-        Instances dataSet = Util.readARFF("weather.numeric.missing.arff");
+//        Instances dataSet = Util.readARFF("weather.numeric.missing.arff");
+//        Instances dataSet = Util.readARFF("weather.nominal.missing.arff");
+//        Instances dataSet = Util.readARFF("iris.missing.arff");
+        Instances dataSet = Util.readARFF("iris.2D.missing.arff");
 
         Evaluation MyJ48Evaluation = Util.crossValidationTest(dataSet, new MyJ48());
         System.out.println(MyJ48Evaluation.toSummaryString("===== My J48 Result =====", false));
