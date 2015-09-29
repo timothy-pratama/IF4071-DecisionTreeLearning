@@ -276,7 +276,8 @@ public class Splitable extends NodeType{
     @Override
     public double[] getWeights(Instance instance) {
         double [] weights;
-
+//        System.out.println("\nnum subset: " + numOfSubsets);
+//        classDistribution.print();
         if(instance.isMissing(splitAttribute))
         {
             weights = new double [numOfSubsets];

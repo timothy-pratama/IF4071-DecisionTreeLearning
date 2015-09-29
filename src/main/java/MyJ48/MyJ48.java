@@ -110,7 +110,7 @@ public class MyJ48 extends Classifier {
                     childs = largestBranch.childs;
                     nodeType = largestBranch.nodeType;
                     is_leaf = largestBranch.is_leaf;
-//                    createNewDistribution(dataSet);
+                    createNewDistribution(dataSet);
                     pruneTree();
                 }
             }
@@ -120,6 +120,7 @@ public class MyJ48 extends Classifier {
     private void createNewDistribution(Instances dataSet) {
         Instances [] subDataset;
         this.dataSet = dataSet;
+        //TODO:: FIX THIS !!!!
         nodeType.classDistribution = new J48ClassDistribution(dataSet);
         if(!is_leaf)
         {
@@ -170,6 +171,8 @@ public class MyJ48 extends Classifier {
         else
         {
             J48ClassDistribution tempClassDistribution = nodeType.classDistribution;
+
+            //TODO:: FIX THIS!!!!!!!
             nodeType.classDistribution = new J48ClassDistribution(dataSet);
             subDataset = nodeType.split(dataSet);
             nodeType.classDistribution = tempClassDistribution;
@@ -529,8 +532,8 @@ public class MyJ48 extends Classifier {
 //        Instances dataSet = Util.readARFF("iris.2D.arff");
 //        Instances dataSet = Util.readARFF("weather.numeric.missing.arff");
 //        Instances dataSet = Util.readARFF("weather.nominal.missing.arff");
-//        Instances dataSet = Util.readARFF("iris.missing.arff");
-        Instances dataSet = Util.readARFF("iris.2D.missing.arff");
+        Instances dataSet = Util.readARFF("iris.missing.arff");
+//        Instances dataSet = Util.readARFF("iris.2D.missing.arff");
 
         Evaluation MyJ48Evaluation = Util.crossValidationTest(dataSet, new MyJ48());
         System.out.println(MyJ48Evaluation.toSummaryString("===== My J48 Result =====", false));

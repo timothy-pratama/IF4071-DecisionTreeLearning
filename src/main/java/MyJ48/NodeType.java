@@ -43,6 +43,8 @@ public class NodeType {
         double newWeight;
         Instance instance;
         int subset;
+        System.out.println("\nNum of subset: " + numOfSubsets);
+        classDistribution.print();
 
         for(int i=0; i<numOfSubsets; i++)
         {

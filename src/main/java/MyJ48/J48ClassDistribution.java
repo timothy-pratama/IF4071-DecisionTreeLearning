@@ -210,13 +210,13 @@ public class J48ClassDistribution {
      * @return
      */
     private double log2(double a) {
-        if(a != 0)
+        if(a < 1e-6)
         {
-            return Math.log(a) / Math.log(2);
+            return 0;
         }
         else
         {
-            return 0;
+            return Math.log(a) / Math.log(2);
         }
     }
 
