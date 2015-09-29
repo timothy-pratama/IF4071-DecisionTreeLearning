@@ -77,6 +77,9 @@ public class MyJ48 extends Classifier {
         pruneTree();
     }
 
+    /**
+     * Prune the tree!
+     */
     private void pruneTree() {
         int largestBranchIndex;
         double largestBranchError;
@@ -94,7 +97,7 @@ public class MyJ48 extends Classifier {
             largestBranchIndex = Utils.maxIndex(nodeType.classDistribution.weightPerSubDataset);
             largestBranchError = childs[largestBranchIndex].getBranchError(dataSet);
             leafError = getDistributionError(nodeType.classDistribution);
-            treeError = getEstimatedError();
+            treeError = getEstimatedTreeError();
 
             if(Utils.smOrEq(leafError, treeError+0.1) && Utils.smOrEq(leafError, largestBranchError+0.1))
             {
@@ -117,6 +120,10 @@ public class MyJ48 extends Classifier {
         }
     }
 
+    /**
+     * Create new distribution for this node.
+     * @param dataSet
+     */
     private void createNewDistribution(Instances dataSet) {
         Instances [] subDataset;
         this.dataSet = dataSet;
@@ -142,7 +149,11 @@ public class MyJ48 extends Classifier {
         }
     }
 
-    private double getEstimatedError() {
+    /**
+     * Get estimated error for the tree
+     * @return
+     */
+    private double getEstimatedTreeError() {
         double error = 0;
 
         if(is_leaf)
@@ -153,7 +164,7 @@ public class MyJ48 extends Classifier {
         {
             for (int i=0; i<childs.length; i++)
             {
-                error = error + childs[i].getEstimatedError();
+                error = error + childs[i].getEstimatedTreeError();
             }
             return error;
         }
