@@ -78,6 +78,35 @@ public class J48ClassDistribution {
         weightPerClass = new double[numberOfClass];
     }
 
+    public J48ClassDistribution(Instances dataSet, NodeType nodeType) {
+        int subsetIndex;
+        Instance instance;
+        double [] weights;
+
+        weightClassPerSubdataset = new double[nodeType.numOfSubsets][0];
+        weightPerSubDataset = new double[nodeType.numOfSubsets];
+        weightTotal = 0;
+        weightPerClass = new double[dataSet.numClasses()];
+        for(int i=0; i<nodeType.numOfSubsets; i++)
+        {
+            weightClassPerSubdataset[i] = new double[dataSet.numClasses()];
+        }
+        Enumeration instancesEnumeration = dataSet.enumerateInstances();
+        while(instancesEnumeration.hasMoreElements())
+        {
+            instance = (Instance) instancesEnumeration.nextElement();
+            subsetIndex = nodeType.getSubsetIndex(instance);
+            if(subsetIndex  != -1)
+            {
+                addInstance(subsetIndex, instance);
+            }
+            else
+            {
+                weights = nodeType.getWeights(instance);
+            }
+        }
+    }
+
     /**
      * return the number of subdataset in this distribution
      * @return

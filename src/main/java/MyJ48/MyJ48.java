@@ -120,8 +120,7 @@ public class MyJ48 extends Classifier {
     private void createNewDistribution(Instances dataSet) {
         Instances [] subDataset;
         this.dataSet = dataSet;
-        //TODO:: FIX THIS !!!!
-        nodeType.classDistribution = new J48ClassDistribution(dataSet);
+        nodeType.resetDistribution(dataSet);
         if(!is_leaf)
         {
             subDataset = nodeType.split(dataSet);
@@ -171,9 +170,7 @@ public class MyJ48 extends Classifier {
         else
         {
             J48ClassDistribution tempClassDistribution = nodeType.classDistribution;
-
-            //TODO:: FIX THIS!!!!!!!
-            nodeType.classDistribution = new J48ClassDistribution(dataSet);
+            nodeType.resetDistribution(dataSet);
             subDataset = nodeType.split(dataSet);
             nodeType.classDistribution = tempClassDistribution;
             for(int i=0; i<childs.length; i++)
@@ -530,9 +527,9 @@ public class MyJ48 extends Classifier {
 //        Instances dataSet = Util.readARFF("weather.numeric.arff");
 //        Instances dataSet = Util.readARFF("iris.arff");
 //        Instances dataSet = Util.readARFF("iris.2D.arff");
-//        Instances dataSet = Util.readARFF("weather.numeric.missing.arff");
+        Instances dataSet = Util.readARFF("weather.numeric.missing.arff");
 //        Instances dataSet = Util.readARFF("weather.nominal.missing.arff");
-        Instances dataSet = Util.readARFF("iris.missing.arff");
+//        Instances dataSet = Util.readARFF("iris.missing.arff");
 //        Instances dataSet = Util.readARFF("iris.2D.missing.arff");
 
         Evaluation MyJ48Evaluation = Util.crossValidationTest(dataSet, new MyJ48());
