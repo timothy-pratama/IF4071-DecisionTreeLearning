@@ -363,34 +363,30 @@ public class MyId3 extends Classifier {
     public String toString() {
 
         if ((classDistribution == null) && (childs == null)) {
-            return "MyId3.MyId3: No model built yet.";
+            return "MyId3: No model built yet.";
         }
-        return "MyId3.MyId3\n\n" + toString(0);
+        return "MyId3\n\n" + toString(0);
     }
 
-    public static void main (String [] args) {
-        try
-        {
-            Instances dataSet = Util.readARFF("weather.nominal.arff");
+    public static void main (String [] args) throws Exception {
+//        Instances dataSet = Util.readARFF("weather.nominal.arff");
+        Instances dataSet = Util.readARFF("weather.nominal.missing.examples.arff");
 
-            Classifier myId3 = new MyId3();
-            myId3.buildClassifier(dataSet);
-            System.out.println(myId3.toString());
+        Evaluation myid3Evaluation = Util.crossValidationTest(dataSet, new MyId3());
+        System.out.println(myid3Evaluation.toSummaryString("===== MyId3 Result =====", false));
+        System.out.println(myid3Evaluation.toMatrixString());
 
-            Classifier id3 = new Id3();
-            id3.buildClassifier(dataSet);
-            System.out.println(id3.toString());
+        Evaluation id3Evaluation = Util.crossValidationTest(dataSet, new Id3());
+        System.out.println(id3Evaluation.toSummaryString("===== Id3 Result =====", false));
+        System.out.println(id3Evaluation.toMatrixString());
 
-            Evaluation myId3Evaluation = Util.crossValidationTest(dataSet, new MyId3());
-            Evaluation id3Evaluation = Util.crossValidationTest(dataSet, new Id3());
-            System.out.println("\n===== MyId3 Cross Validation Result =====\n");
-            System.out.println(myId3Evaluation.toSummaryString());
-            System.out.println("\n===== Id3 Cross Validation Result =====\n");
-            System.out.println(id3Evaluation.toSummaryString());
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        Classifier id3 = new Id3();
+        Classifier myid3 = new MyId3();
+
+        id3.buildClassifier(dataSet);
+        myid3.buildClassifier(dataSet);
+
+        System.out.println("\n===== MyId3 Model =====\n" + myid3.toString());
+        System.out.println("\n===== Id3 Model =====\n" + id3.toString());
     }
 }
